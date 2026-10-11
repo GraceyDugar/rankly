@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { site } from "@/lib/site";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getAdminEmail } from "@/lib/supabase-server";
@@ -40,6 +41,8 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 }
 
 async function Dashboard() {
+  // Always render at request time: the stats depend on the current time.
+  await connection();
   const email = await getAdminEmail();
   if (!email) redirect("/admin/login");
 

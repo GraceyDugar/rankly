@@ -1,23 +1,41 @@
 import { runScan } from "@/lib/scan";
+import { supabaseAdmin } from "@/lib/supabase";
 
-// Basic per-IP limit so the free scan can't burn through the API quota.
-// In-memory only: good enough for launch, moves to the database later.
+// Free checks per visitor per 24 hours.
 const LIMIT = 3;
 const WINDOW_MS = 24 * 60 * 60 * 1000;
-const hits = new Map<string, { count: number; resetAt: number }>();
 
-function allow(ip: string) {
-  // No limit while developing locally.
+// Store a one-way hash of the IP, never the IP itself.
+async function hashIp(ip: string) {
+  const salt = process.env.IP_HASH_SALT || "rankly";
+  const bytes = new TextEncoder().encode(`${salt}:${ip}`);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function clientIp(request: Request) {
+  // Cloudflare sets cf-connecting-ip, which visitors can't spoof.
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    "local"
+  );
+}
+
+async function underLimit(ipHash: string) {
   if (process.env.NODE_ENV === "development") return true;
-  const now = Date.now();
-  const entry = hits.get(ip);
-  if (!entry || entry.resetAt < now) {
-    hits.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+  const since = new Date(Date.now() - WINDOW_MS).toISOString();
+  const { count, error } = await supabaseAdmin()
+    .from("free_checks")
+    .select("id", { count: "exact", head: true })
+    .eq("ip_hash", ipHash)
+    .gte("created_at", since);
+  // If the database is unreachable, don't block real visitors.
+  if (error) {
+    console.error("Rate limit check failed:", error.message);
     return true;
   }
-  if (entry.count >= LIMIT) return false;
-  entry.count++;
-  return true;
+  return (count ?? 0) < LIMIT;
 }
 
 export async function POST(request: Request) {
@@ -39,19 +57,32 @@ export async function POST(request: Request) {
     return Response.json({ error: "Enter a question customers ask (5–150 characters)." }, { status: 400 });
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
-  if (!allow(ip)) {
+  const ipHash = await hashIp(clientIp(request));
+  if (!(await underLimit(ipHash))) {
     return Response.json(
-      { error: "You've used your free scans for today. Sign up to track this every week." },
+      { error: "You've used your free checks for today. Sign up to track this every week." },
       { status: 429 },
     );
   }
 
+  let result;
   try {
-    const result = await runScan(brand, keyword, website || undefined);
-    return Response.json(result);
+    result = await runScan(brand, keyword, website || undefined);
   } catch (err) {
     console.error("Scan failed:", err);
     return Response.json({ error: "The scan failed. Please try again in a minute." }, { status: 502 });
   }
+
+  // Saving is best-effort: a database hiccup shouldn't hide the visitor's result.
+  const { error } = await supabaseAdmin().from("free_checks").insert({
+    brand,
+    question: keyword,
+    mentioned: result.mentioned,
+    position: result.position,
+    competitors: result.competitors,
+    ip_hash: ipHash,
+  });
+  if (error) console.error("Saving free check failed:", error.message);
+
+  return Response.json(result);
 }

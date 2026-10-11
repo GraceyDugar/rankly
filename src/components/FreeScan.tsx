@@ -1,0 +1,178 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { site } from "@/lib/site";
+
+// Shown while the scan runs, so a 10–40s wait doesn't look frozen.
+const STAGES = [
+  { at: 0, text: "Asking AI your question…" },
+  { at: 6, text: "Reading AI's answer…" },
+  { at: 12, text: "Finding who it recommends…" },
+  { at: 20, text: "Checking where you rank…" },
+  { at: 30, text: "AI is busy — almost there…" },
+];
+
+type Result = {
+  keyword: string;
+  mentioned: boolean;
+  position: number | null;
+  competitors: string[];
+  answer: string;
+  searched: boolean;
+};
+
+export default function FreeScan() {
+  const [brand, setBrand] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<Result | null>(null);
+  const [scannedBrand, setScannedBrand] = useState("");
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(timer);
+  }, [loading]);
+
+  const stage = [...STAGES].reverse().find((s) => elapsed >= s.at)!;
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setElapsed(0);
+    setError("");
+    setResult(null);
+    setShowAnswer(false);
+    try {
+      const res = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand, keyword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "The check failed. Please try again.");
+      setScannedBrand(brand);
+      setResult(data);
+    } catch (err) {
+      setError(
+        err instanceof TypeError
+          ? "Couldn't reach the server. Check your connection and try again."
+          : err instanceof Error
+            ? err.message
+            : "Something went wrong.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const field =
+    "w-full bg-transparent text-[15px] text-foreground placeholder:text-muted/70 outline-none";
+
+  return (
+    <div className="w-full">
+      <p className="mb-3 text-sm font-medium text-accent">Free check · ~30 seconds</p>
+      <form
+        onSubmit={onSubmit}
+        className="overflow-hidden rounded-2xl border border-line bg-card shadow-[0_1px_0_rgba(0,0,0,0.02),0_12px_40px_-20px_rgba(60,30,10,0.25)] focus-within:border-accent/50"
+      >
+        <label className="sr-only" htmlFor="brand">Your brand</label>
+        <input
+          id="brand"
+          className={`${field} px-5 py-4`}
+          placeholder="Your brand"
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
+          required
+        />
+        <div className="mx-5 border-t border-line" />
+        <div className="flex flex-col gap-2 p-2 sm:flex-row sm:items-center">
+          <label className="sr-only" htmlFor="keyword">A question your customers ask</label>
+          <input
+            id="keyword"
+            className={`${field} px-3 py-3 sm:py-2`}
+            placeholder="e.g. best CRM for freelancers"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            required
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="shrink-0 rounded-xl bg-accent px-5 py-3 text-[15px] font-medium text-white transition hover:brightness-110 disabled:opacity-60"
+          >
+            {loading ? `Checking… ${elapsed}s` : "Run free check →"}
+          </button>
+        </div>
+      </form>
+      {loading && (
+        <p className="mt-3 flex items-center gap-2 text-sm text-muted" aria-live="polite">
+          <span className="size-2 animate-pulse rounded-full bg-accent" />
+          {stage.text}
+        </p>
+      )}
+      {error && (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      )}
+
+      {result && (
+        <div className="mt-6 rounded-2xl border border-line bg-card p-6">
+          <p className="font-mono text-xs text-muted">{`// result for “${result.keyword}”`}</p>
+          {result.mentioned ? (
+            <p className="mt-3 text-2xl font-semibold tracking-tight">
+              AI recommends <span className="font-serif text-3xl font-normal italic text-accent">{scannedBrand}</span>
+              {result.position ? ` — #${result.position} on the list.` : "."}
+            </p>
+          ) : (
+            <p className="mt-3 text-2xl font-semibold tracking-tight">
+              AI doesn&apos;t mention <span className="font-serif text-3xl font-normal italic text-accent">{scannedBrand}</span>.
+            </p>
+          )}
+          <p className="mt-1 text-xs text-muted">
+            {result.searched ? "Based on a live web search by Gemini." : "Based on what Gemini knows from its training."}
+          </p>
+
+          {result.competitors.length > 0 && (
+            <>
+              <p className="mt-5 text-sm font-medium text-muted">
+                {result.mentioned ? "Also recommended:" : "It recommended these instead:"}
+              </p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {result.competitors.map((c) => (
+                  <li key={c} className="rounded-full border border-line bg-background px-3 py-1 text-sm">
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <button onClick={() => setShowAnswer((s) => !s)} className="mt-5 text-sm text-muted underline underline-offset-4">
+            {showAnswer ? "Hide" : "Read"} the full AI answer
+          </button>
+          {showAnswer && (
+            <p className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded-xl bg-background p-4 text-sm leading-relaxed text-muted">
+              {result.answer}
+            </p>
+          )}
+
+          <a
+            href={site.checkoutUrl}
+            className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-foreground p-4 text-background transition hover:bg-foreground/90"
+          >
+            <span>
+              <span className="block font-medium">Track this every week</span>
+              <span className="block text-sm opacity-70">5 questions · Monday report · 3 fixes</span>
+            </span>
+            <span className="shrink-0 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white">${site.price}/mo →</span>
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -83,10 +83,12 @@ const deliverables = [
   { title: "History", body: "See what's working over time." },
 ];
 
-const steps = [
-  { title: "Add your questions", body: "Your brand + 5 questions. Two minutes." },
-  { title: "We ask AI weekly", body: "Like a real customer would." },
-  { title: "Get your report", body: "Every Monday, in your inbox." },
+const flow = [
+  { icon: "✎", title: "Add your brand", body: "Your business + 5 questions customers ask AI." },
+  { icon: "⏱", title: "Every Monday", body: "Rankly asks AI search your questions — automatically." },
+  { icon: "◎", title: "Who gets named", body: "We find which brands AI recommends, and your rank." },
+  { icon: "▲", title: "AI visibility score", body: "Your score, competitors, and change vs. last week." },
+  { icon: "✉", title: "Report + 3 fixes", body: "In your inbox: exactly what to do to rank higher." },
 ];
 
 const faqs = [
@@ -193,6 +195,7 @@ export default function Home() {
         <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Logo />
           <div className="hidden items-center gap-8 text-[15px] text-muted md:flex">
+            <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#value" className="hover:text-foreground">What you get</a>
             <a href="#pricing" className="hover:text-foreground">Pricing</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
@@ -239,6 +242,35 @@ export default function Home() {
           </div>
         </section>
 
+
+        {/* How it works: the full flow */}
+        <section id="how" className="scroll-mt-20 border-t border-line">
+          <div className="mx-auto max-w-6xl px-6 py-24">
+            <Label>{"// how it works"}</Label>
+            <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+              Set up once. <span className="font-serif font-normal italic text-accent">Rankly does the rest.</span>
+            </h2>
+            <ol className="mt-12 grid gap-4 md:grid-cols-5">
+              {flow.map((f, i) => (
+                <li key={f.title} className="relative rounded-2xl border border-line bg-card p-5">
+                  <div className="flex items-center justify-between">
+                    <span className="grid size-10 place-items-center rounded-xl bg-accent-soft text-lg text-accent">{f.icon}</span>
+                    <span className="font-mono text-xs text-muted">0{i + 1}</span>
+                  </div>
+                  <h3 className="mt-5 font-semibold tracking-tight">{f.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted">{f.body}</p>
+                  {i < flow.length - 1 && (
+                    <span aria-hidden className="absolute -right-3 top-1/2 z-10 hidden -translate-y-1/2 text-accent md:block">→</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+            <p className="mt-6 text-sm text-muted">
+              2 minutes to set up · Fully automatic · No dashboards to learn
+            </p>
+          </div>
+        </section>
+
         {/* What you get */}
         <section id="value" className="scroll-mt-20 border-t border-line">
           <div className="mx-auto max-w-6xl px-6 py-24">
@@ -276,21 +308,13 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-6 pb-24">
           <div className="grid items-center gap-12 rounded-3xl bg-foreground p-8 text-background md:p-14 lg:grid-cols-2">
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-background/60">{"// how it works"}</p>
+              <p className="font-mono text-xs uppercase tracking-widest text-background/60">{"// your monday report"}</p>
               <h2 className="mt-4 text-4xl font-semibold tracking-tight">
                 Not a dashboard. <span className="font-serif font-normal italic text-[#e8a07f]">A to-do list.</span>
               </h2>
-              <ol className="mt-8 space-y-5">
-                {steps.map((s, i) => (
-                  <li key={s.title} className="flex gap-4">
-                    <span className="font-serif text-2xl italic text-[#e8a07f]">0{i + 1}</span>
-                    <span>
-                      <span className="block font-medium">{s.title}</span>
-                      <span className="block text-background/60">{s.body}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
+              <p className="mt-4 text-background/70">
+                One short email every Monday: where you stand in AI search, who&apos;s beating you, and what to fix.
+              </p>
             </div>
             <div className="rounded-2xl bg-card p-6 text-foreground">
               <p className="text-xs text-muted">From {site.name} · Monday</p>

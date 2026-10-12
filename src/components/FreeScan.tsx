@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { site } from "@/lib/site";
+import { CtaButton } from "./EarlyAccess";
 
 // Shown while the scan runs, so a 10–40s wait doesn't look frozen.
 const STAGES = [
@@ -161,16 +162,15 @@ export default function FreeScan() {
             </p>
           )}
 
-          <a
-            href={site.checkoutUrl}
-            className="mt-6 flex items-center justify-between gap-4 rounded-xl bg-foreground p-4 text-background transition hover:bg-foreground/90"
-          >
+          <CtaButton className="mt-6 flex w-full items-center justify-between gap-4 rounded-xl bg-foreground p-4 text-left text-background transition hover:bg-foreground/90">
             <span>
               <span className="block font-medium">Track this every week</span>
               <span className="block text-sm opacity-70">5 questions · Monday report · 3 fixes</span>
             </span>
-            <span className="shrink-0 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white">${site.price}/mo →</span>
-          </a>
+            <span className="shrink-0 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white">
+              {site.checkoutUrl ? `$${site.price}/mo →` : "Early access →"}
+            </span>
+          </CtaButton>
         </div>
       )}
     </div>

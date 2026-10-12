@@ -1,26 +1,10 @@
 import { runScan } from "@/lib/scan";
 import { supabaseAdmin } from "@/lib/supabase";
+import { clientIp, hashIp } from "@/lib/ip";
 
 // Free checks per visitor per 24 hours.
 const LIMIT = 3;
 const WINDOW_MS = 24 * 60 * 60 * 1000;
-
-// Store a one-way hash of the IP, never the IP itself.
-async function hashIp(ip: string) {
-  const salt = process.env.IP_HASH_SALT || "rankly";
-  const bytes = new TextEncoder().encode(`${salt}:${ip}`);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function clientIp(request: Request) {
-  // Cloudflare sets cf-connecting-ip, which visitors can't spoof.
-  return (
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    "local"
-  );
-}
 
 async function underLimit(ipHash: string) {
   if (process.env.NODE_ENV === "development") return true;

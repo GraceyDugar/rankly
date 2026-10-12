@@ -18,6 +18,8 @@ type FreeCheck = {
   created_at: string;
 };
 
+type Signup = { id: string; email: string; brand: string | null; created_at: string };
+
 type Customer = { id: string; email: string; status: string; created_at: string };
 
 async function countSince(table: string, sinceMs?: number) {
@@ -48,7 +50,7 @@ async function Dashboard() {
 
   const DAY = 24 * 60 * 60 * 1000;
   const db = supabaseAdmin();
-  const [today, week, allTime, activeCustomers, checksRes, customersRes] = await Promise.all([
+  const [today, week, allTime, activeCustomers, checksRes, customersRes, signupsRes] = await Promise.all([
     countSince("free_checks", DAY),
     countSince("free_checks", 7 * DAY),
     countSince("free_checks"),
@@ -59,7 +61,9 @@ async function Dashboard() {
       .order("created_at", { ascending: false })
       .limit(100),
     db.from("customers").select("id, email, status, created_at").order("created_at", { ascending: false }).limit(100),
+    db.from("waitlist").select("id, email, brand, created_at", { count: "exact" }).order("created_at", { ascending: false }).limit(500),
   ]);
+  const signups = (signupsRes.data ?? []) as Signup[];
 
   const checks = (checksRes.data ?? []) as FreeCheck[];
   const customers = (customersRes.data ?? []) as Customer[];
@@ -80,13 +84,41 @@ async function Dashboard() {
         </form>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-6">
         <Stat label="Checks today" value={today} />
         <Stat label="Checks · 7 days" value={week} />
         <Stat label="Checks · all time" value={allTime} />
         <Stat label="Mentioned rate" value={`${mentionRate}%`} />
+        <Stat label="Early access" value={signupsRes.count ?? 0} />
         <Stat label="Paying customers" value={activeCustomers.count ?? 0} />
       </div>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold tracking-tight">Early access list</h2>
+        <div className="mt-4 rounded-2xl border border-line bg-card">
+          {signups.length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-muted">No signups yet.</p>
+          ) : (
+            <ul className="divide-y divide-line text-sm">
+              {signups.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                  <span className="font-medium">{s.email}</span>
+                  <span className="flex items-center gap-4 text-muted">
+                    <span>{s.brand || "—"}</span>
+                    <span className="whitespace-nowrap">{when(s.created_at)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {signups.length > 0 && (
+          <details className="mt-3 text-sm text-muted">
+            <summary className="cursor-pointer">Copy all emails</summary>
+            <textarea readOnly className="mt-2 h-24 w-full rounded-xl border border-line bg-card p-3 font-mono text-xs" value={signups.map((s) => s.email).join(", ")} />
+          </details>
+        )}
+      </section>
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold tracking-tight">Latest free checks</h2>

@@ -8,5 +8,16 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Keep variables added in the Cloudflare dashboard (like the Supabase
+  // URL/anon key) instead of wiping them on each deploy. Secrets are
+  // always kept and never belong in this file.
+  "keep_vars": true,
+  // Non-secret settings, versioned with the code.
+  "vars": {
+    "GEMINI_MODEL": "gemini-3.8-flash",
+    "GEMINI_FALLBACK_MODELS": "gemini-3.5-flash-lite,gemini-3.1-flash-lite",
+    "GEMINI_SEARCH": "off",
+    "NEXT_PUBLIC_SITE_URL": "https://rankly.world"
+  }
 }

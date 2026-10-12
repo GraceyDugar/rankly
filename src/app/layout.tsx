@@ -21,6 +21,8 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(site.url),
+  alternates: { canonical: "/" },
   title: `${site.name} — AI Visibility Tracker for AI Search, AEO & GEO`,
   description: `AI visibility tracker for AI search. Weekly AI SEO report (AEO & GEO): see if AI recommends your business, who it names instead, and 3 fixes. $${site.price}/month.`,
   keywords: [

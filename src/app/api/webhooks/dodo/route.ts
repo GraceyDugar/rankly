@@ -40,7 +40,9 @@ export async function POST(request: Request) {
     const { data: rows } = await db.from("customers").update(update).eq("dodo_subscription_id", subscriptionId).select("id");
     matched = !!rows?.length;
   }
-  if (!matched && email) {
+  // A new subscription can be linked by email, but a failed or cancelled
+  // attempt we've never seen must not downgrade an existing customer.
+  if (!matched && email && status === "active") {
     const { error } = await db.from("customers").upsert({ email, ...update }, { onConflict: "email" });
     if (error) {
       console.error("Webhook customer update failed:", error.message);

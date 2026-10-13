@@ -202,7 +202,7 @@ export default function Home() {
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </div>
           <CtaButton className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:bg-foreground/85">
-            {site.checkoutUrl ? `Start for $${site.price}/mo` : "Get early access"}
+            {site.paymentsEnabled ? `Start for $${site.price}/mo` : "Get early access"}
           </CtaButton>
         </nav>
       </header>
@@ -366,7 +366,7 @@ export default function Home() {
                 ))}
               </ul>
               <CtaButton className="mt-8 block w-full rounded-xl bg-accent py-3.5 text-center font-medium text-white hover:brightness-110">
-                {site.checkoutUrl ? "Start tracking" : "Get early access — no payment today"}
+                {site.paymentsEnabled ? "Start tracking" : "Get early access — no payment today"}
               </CtaButton>
             </div>
           </div>

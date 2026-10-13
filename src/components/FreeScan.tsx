@@ -168,7 +168,7 @@ export default function FreeScan() {
               <span className="block text-sm opacity-70">5 questions · Monday report · 3 fixes</span>
             </span>
             <span className="shrink-0 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white">
-              {site.checkoutUrl ? `$${site.price}/mo →` : "Early access →"}
+              {site.paymentsEnabled ? `$${site.price}/mo →` : "Early access →"}
             </span>
           </CtaButton>
         </div>

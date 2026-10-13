@@ -4,6 +4,6 @@ export const site = {
   tagline: "See if AI recommends your business — or your competitor.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://rankly.world",
   price: 9,
-  // Dodo Payments link. Empty = buttons open the early-access form instead.
-  checkoutUrl: process.env.NEXT_PUBLIC_CHECKOUT_URL || "",
+  // "true" = pricing buttons open Dodo checkout; otherwise the early-access form.
+  paymentsEnabled: process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true",
 };

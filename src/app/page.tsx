@@ -1,5 +1,6 @@
 import FreeScan from "@/components/FreeScan";
 import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
+import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
 
 function Logo() {
@@ -408,12 +409,7 @@ export default function Home() {
 
       <EarlyAccessDialog />
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted sm:flex-row">
-          <Logo />
-          <p>© 2026 {site.name} · AI visibility tracker for AEO &amp; GEO</p>
-        </div>
-      </footer>
+      <LegalFooter />
     </div>
   );
 }

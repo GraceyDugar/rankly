@@ -59,7 +59,7 @@ Rules: each fix is one sentence, under 25 words, starts with a verb, names a spe
   return [
     top ? `Publish an honest "${top} vs ${brand.name}" comparison page.` : `Publish an honest comparison page against your main competitor.`,
     `Get ${brand.name} listed in "best of" articles for "${report.results[0]?.keyword}".`,
-    `Answer Reddit and Quora threads asking your 5 questions, mentioning ${brand.name} where relevant.`,
+    `Answer Reddit and Quora threads asking your questions, mentioning ${brand.name} where relevant.`,
   ];
 }
 

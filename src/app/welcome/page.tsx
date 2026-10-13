@@ -7,7 +7,8 @@ export const metadata = { title: `Welcome — ${site.name}`, robots: { index: fa
 async function Content({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const { subscription_id: subscriptionId, status } = await searchParams;
 
-  if (!subscriptionId || (status && !["active", "succeeded"].includes(status))) {
+  // The form re-checks the subscription with Dodo, so only obvious failures stop here.
+  if (!subscriptionId || (status && ["failed", "cancelled", "expired"].includes(status))) {
     return (
       <p className="rounded-2xl border border-line bg-card p-6 text-muted">
         We couldn&apos;t confirm a payment from this link. If you were charged, reply to your receipt email and we&apos;ll sort it out.

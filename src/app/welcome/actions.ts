@@ -24,11 +24,35 @@ export async function saveBrand(_prev: WelcomeState, formData: FormData): Promis
   // The subscription id comes from Dodo's redirect and is set on the customer by
   // the webhook, so only the person who paid can complete this step.
   const db = supabaseAdmin();
-  const { data: customer } = await db
+  let { data: customer } = await db
     .from("customers")
     .select("id, email, status")
     .eq("dodo_subscription_id", subscriptionId)
     .maybeSingle();
+
+  // Webhook not here yet? Confirm the subscription with Dodo directly.
+  if (!customer) {
+    const { getSubscription } = await import("@/lib/dodo");
+    const sub = await getSubscription(subscriptionId);
+    const email = (sub?.metadata?.email || sub?.customer?.email || "").trim().toLowerCase();
+    if (sub?.status === "active" && email) {
+      const { data } = await db
+        .from("customers")
+        .upsert(
+          {
+            email,
+            status: "active",
+            dodo_subscription_id: sub.subscription_id,
+            dodo_customer_id: sub.customer?.customer_id ?? null,
+          },
+          { onConflict: "email" },
+        )
+        .select("id, email, status")
+        .single();
+      customer = data;
+    }
+  }
+
   if (!customer || customer.status !== "active") {
     return { pending: true, error: "We're still confirming your payment — try again in a few seconds." };
   }

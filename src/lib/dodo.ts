@@ -27,6 +27,23 @@ export async function createCheckout(email: string, returnUrl: string) {
   return data.checkout_url;
 }
 
+// Looks up a subscription directly, so onboarding doesn't have to wait for
+// the webhook. Returns null if Dodo doesn't know it.
+export async function getSubscription(subscriptionId: string) {
+  const key = process.env.DODO_API_KEY;
+  if (!key || !/^sub_[A-Za-z0-9]+$/.test(subscriptionId)) return null;
+  const res = await fetch(`${apiBase()}/subscriptions/${subscriptionId}`, {
+    headers: { Authorization: `Bearer ${key}` },
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as {
+    subscription_id: string;
+    status: string;
+    metadata?: { email?: string };
+    customer?: { customer_id?: string; email?: string };
+  };
+}
+
 function base64ToBytes(b64: string) {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }

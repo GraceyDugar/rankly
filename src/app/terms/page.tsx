@@ -13,7 +13,7 @@ export default function Terms() {
 
       <h2>What {site.name} does</h2>
       <p>
-        {site.name} asks AI assistants (currently Google Gemini) questions you choose, records whether your business is
+        {site.name} asks AI assistants questions you choose, records whether your business is
         recommended and which competitors appear, and sends you reports with suggested improvements. Results reflect AI
         answers at the time of each check. AI answers vary between runs and over time.
       </p>

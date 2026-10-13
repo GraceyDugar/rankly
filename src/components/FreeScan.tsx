@@ -4,13 +4,20 @@ import { useEffect, useState } from "react";
 import { site } from "@/lib/site";
 import { CtaButton } from "./EarlyAccess";
 
-// Shown while the scan runs, so a 10–40s wait doesn't look frozen.
-const STAGES = [
-  { at: 0, text: "Asking AI your question…" },
-  { at: 6, text: "Reading AI's answer…" },
-  { at: 12, text: "Finding who it recommends…" },
-  { at: 20, text: "Checking where you rank…" },
-  { at: 30, text: "AI is busy — almost there…" },
+// Rotating status words while the scan runs, so the wait feels alive.
+const VERBS = [
+  "Asking AI",
+  "Pondering",
+  "Triangulating",
+  "Cross-referencing",
+  "Reading between the lines",
+  "Tallying recommendations",
+  "Sizing up competitors",
+  "Consulting the oracle",
+  "Untangling answers",
+  "Ranking the shortlist",
+  "Double-checking",
+  "Almost there",
 ];
 
 type Result = {
@@ -18,6 +25,7 @@ type Result = {
   mentioned: boolean;
   position: number | null;
   competitors: string[];
+  related: { name: string; position: number } | null;
   answer: string;
   searched: boolean;
 };
@@ -34,11 +42,12 @@ export default function FreeScan() {
 
   useEffect(() => {
     if (!loading) return;
-    const timer = setInterval(() => setElapsed((s) => s + 1), 1000);
+    const timer = setInterval(() => setElapsed((s) => s + 0.5), 500);
     return () => clearInterval(timer);
   }, [loading]);
 
-  const stage = [...STAGES].reverse().find((s) => elapsed >= s.at)!;
+  // Advance a word every ~2.5s and hold on the last one.
+  const verb = VERBS[Math.min(Math.floor(elapsed / 2.5), VERBS.length - 1)];
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,13 +57,17 @@ export default function FreeScan() {
     setResult(null);
     setShowAnswer(false);
     try {
-      const res = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brand, keyword }),
-      });
+      const send = () =>
+        fetch("/api/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ brand, keyword }),
+        });
+      // AI providers are occasionally overloaded; one quiet retry fixes most of it.
+      let res = await send();
+      if (res.status >= 500) res = await send();
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "The check failed. Please try again.");
+      if (!res.ok) throw new Error(data.error || "AI is busy right now. Please try again in a minute.");
       setScannedBrand(brand);
       setResult(data);
     } catch (err) {
@@ -105,14 +118,14 @@ export default function FreeScan() {
             disabled={loading}
             className="shrink-0 rounded-xl bg-accent px-5 py-3 text-[15px] font-medium text-white transition hover:brightness-110 disabled:opacity-60"
           >
-            {loading ? `Checking… ${elapsed}s` : "Run free check →"}
+            {loading ? `${verb}…` : "Run free check →"}
           </button>
         </div>
       </form>
       {loading && (
         <p className="mt-3 flex items-center gap-2 text-sm text-muted" aria-live="polite">
           <span className="size-2 animate-pulse rounded-full bg-accent" />
-          {stage.text}
+          {verb}…
         </p>
       )}
       {error && (
@@ -134,9 +147,13 @@ export default function FreeScan() {
               AI doesn&apos;t mention <span className="font-serif text-3xl font-normal italic text-accent">{scannedBrand}</span>.
             </p>
           )}
-          <p className="mt-1 text-xs text-muted">
-            {result.searched ? "Based on a live web search by Gemini." : "Based on what Gemini knows from its training."}
-          </p>
+
+          {result.related && (
+            <p className="mt-3 rounded-xl bg-accent-soft/60 px-4 py-3 text-sm">
+              It does name a related name: <span className="font-medium">{result.related.name}</span> (#{result.related.position}).
+              AI may be mixing you up with it.
+            </p>
+          )}
 
           {result.competitors.length > 0 && (
             <>

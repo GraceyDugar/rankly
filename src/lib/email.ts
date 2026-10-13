@@ -48,7 +48,7 @@ export function reportEmailHtml(r: Report) {
       <p style="margin:24px 0 8px;font-size:13px;font-weight:600;color:#16130f">This week's 3 fixes</p>
       <ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.5;color:#16130f">${fixes}</ol>
 
-      <p style="margin:28px 0 0;font-size:12px;color:#6b645b">Checked with Google's AI (Gemini). ${esc(site.name)} · ${esc(site.url.replace(/^https?:\/\//, ""))}</p>
+      <p style="margin:28px 0 0;font-size:12px;color:#6b645b">AI visibility check by ${esc(site.name)} · ${esc(site.url.replace(/^https?:\/\//, ""))}</p>
     </td></tr>
   </table></td></tr></table></body></html>`;
 }

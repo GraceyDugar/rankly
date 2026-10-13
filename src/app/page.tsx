@@ -119,12 +119,8 @@ const faqs = [
     a: "Usually because AI hasn't seen enough about you on other websites yet — few reviews, list mentions or discussions. New brands are often missing simply because AI learned from older data.",
   },
   {
-    q: "Why can't I just ask ChatGPT or Gemini myself?",
+    q: "Why can't I just ask AI myself?",
     a: "You can — but AI remembers you and your chats, so it may show you a flattering answer your customers never see. And doing it every week, for every question, quickly becomes a chore. We check in a clean session, automatically.",
-  },
-  {
-    q: "Which AI search tools does it track?",
-    a: "Google's AI (Gemini) today. ChatGPT and Perplexity are coming next, free for existing subscribers.",
   },
   {
     q: "How often is my AI visibility checked?",
@@ -165,7 +161,7 @@ export default function Home() {
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       description:
-        "AI visibility tracker for AI search (AEO & GEO, AI SEO). Checks weekly whether Google's AI recommends your business, which competitors it names instead, and what to fix.",
+        "AI visibility tracker for AI search (AEO & GEO, AI SEO). Checks weekly whether AI search recommends your business, which competitors it names instead, and what to fix.",
       offers: { "@type": "Offer", price: String(site.price), priceCurrency: "USD" },
     },
     {
@@ -229,16 +225,13 @@ export default function Home() {
               </p>
               <div className="mt-10 max-w-xl">
                 <FreeScan />
-                <p className="mt-4 font-mono text-[11px] uppercase tracking-wider text-muted">
-                  Checks Google&apos;s AI (Gemini) today · ChatGPT &amp; Perplexity soon
-                </p>
               </div>
             </div>
 
             <div className="relative">
-              <EngineTile name="Gemini" glyph="G" rotate="-8deg" className="-left-10 -top-10" />
-              <EngineTile name="ChatGPT" glyph="C" rotate="6deg" className="-right-6 -top-14" />
-              <EngineTile name="Perplexity" glyph="P" rotate="-4deg" className="-bottom-10 -right-4" />
+              <EngineTile name="AI search" glyph="✦" rotate="-8deg" className="-left-10 -top-10" />
+              <EngineTile name="Answers" glyph="?" rotate="6deg" className="-right-6 -top-14" />
+              <EngineTile name="Rank" glyph="#1" rotate="-4deg" className="-bottom-10 -right-4" />
               <ReportCard />
             </div>
           </div>
@@ -357,7 +350,7 @@ export default function Home() {
                   "AI visibility score + rank",
                   "Competitors AI recommends",
                   "3 fixes every week",
-                  "Google Gemini now · ChatGPT & Perplexity free when added",
+                  "Clean checks, like a brand-new customer",
                   "Cancel anytime",
                 ].map((f) => (
                   <li key={f} className="flex gap-3">

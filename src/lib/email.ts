@@ -64,6 +64,7 @@ export async function sendReportEmail(to: string, r: Report) {
     body: JSON.stringify({
       from: process.env.EMAIL_FROM || `${site.name} <onboarding@resend.dev>`,
       to: [to],
+      reply_to: site.supportEmail,
       subject: `${r.brand.name}: AI visibility ${r.score}/${r.total} this week`,
       html: reportEmailHtml(r),
     }),

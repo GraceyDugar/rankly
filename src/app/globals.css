@@ -48,3 +48,75 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .float { animation: none; }
 }
+
+/* Hero mascot: walks right along the headline, hops on "shortlist",
+   turns around and walks back. */
+.mascot-walker {
+  animation: mascot-walk 12s ease-in-out infinite;
+}
+.mascot-facing {
+  animation: mascot-face 12s steps(1) infinite;
+}
+.mascot-hop {
+  animation: mascot-bob 0.5s ease-in-out infinite, mascot-jump 12s ease-out infinite;
+}
+.mascot-leg-a {
+  transform-origin: 17.5px 40px;
+  animation: mascot-step 0.5s ease-in-out infinite;
+}
+.mascot-leg-b {
+  transform-origin: 30.5px 40px;
+  animation: mascot-step 0.5s ease-in-out infinite reverse;
+}
+.mascot-eyes {
+  transform-origin: 24px 25.5px;
+  animation: mascot-blink 4s infinite;
+}
+.mascot-antenna {
+  animation: mascot-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes mascot-walk {
+  0%, 4% { left: 0; }
+  42%, 58% { left: calc(100% - 3.5rem); }
+  96%, 100% { left: 0; }
+}
+@keyframes mascot-face {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+}
+@keyframes mascot-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -2px; }
+}
+/* Little celebratory jump when it reaches "shortlist" */
+@keyframes mascot-jump {
+  0%, 44%, 52%, 100% { transform: translateY(0); }
+  47% { transform: translateY(-14px); }
+  49% { transform: translateY(0); }
+  50.5% { transform: translateY(-6px); }
+}
+@keyframes mascot-step {
+  0%, 100% { transform: rotate(14deg); }
+  50% { transform: rotate(-14deg); }
+}
+@keyframes mascot-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes mascot-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-walker,
+  .mascot-facing,
+  .mascot-hop,
+  .mascot-leg-a,
+  .mascot-leg-b,
+  .mascot-eyes,
+  .mascot-antenna {
+    animation: none;
+  }
+}

@@ -1,4 +1,5 @@
 import FreeScan from "@/components/FreeScan";
+import Mascot from "@/components/Mascot";
 import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
 import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
@@ -242,7 +243,8 @@ export default function Home() {
           <div className="relative mx-auto grid max-w-6xl gap-14 px-6 pb-24 pt-16 md:pt-24 lg:grid-cols-[1.1fr_1fr] lg:items-center">
             <div>
               <Label>AI visibility tracker · AEO &amp; GEO</Label>
-              <h1 className="mt-6 text-[48px] font-semibold leading-[1] tracking-[-0.04em] sm:text-6xl lg:text-[76px]">
+              <h1 className="relative mt-20 inline-block text-[48px] font-semibold leading-[1] tracking-[-0.04em] sm:mt-24 sm:text-6xl lg:text-[76px]">
+                <Mascot />
                 Get on AI&apos;s <span className="font-serif font-normal italic text-accent">shortlist.</span>
               </h1>
               <p className="mt-6 max-w-md text-xl leading-snug text-muted">

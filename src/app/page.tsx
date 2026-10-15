@@ -140,7 +140,7 @@ const faqs = [
   },
   {
     q: "Is the free AI visibility check really free?",
-    a: "Yes. No card, no signup. You get 3 free checks a day.",
+    a: "Yes. No card, no signup. Run a quick check on the homepage, then get one full report (up to 5 questions, competitors and 3 fixes) emailed to you, free.",
   },
   {
     q: "Is my data safe?",

@@ -1,10 +1,12 @@
 import { sendReportEmail } from "./email";
-import { currentWeekOf, runBrandReport, type Brand } from "./report";
+import { buildReport, currentWeekOf, runBrandReport, type Brand } from "./report";
 import { supabaseAdmin } from "./supabase";
 
 type BrandWithCustomer = Brand & { customers: { email: string; status: string } };
 
-// Brands of active customers that don't have this week's report yet.
+// Brands of active customers still owed a report: on Mondays, everyone
+// without this week's emailed report; other days, only brand-new customers
+// (no report yet), so they get their first one within minutes of signing up.
 export async function pendingBrands(limit: number) {
   const db = supabaseAdmin();
   const weekOf = currentWeekOf();
@@ -14,7 +16,9 @@ export async function pendingBrands(limit: number) {
       .select("id, name, website, questions, customer_id, customers!inner(email, status)")
       .eq("customers.status", "active")
       .order("created_at"),
-    db.from("scans").select("brand_id").eq("week_of", weekOf).not("emailed_at", "is", null),
+    new Date().getUTCDay() === 1
+      ? db.from("scans").select("brand_id").eq("week_of", weekOf).not("emailed_at", "is", null)
+      : db.from("scans").select("brand_id").not("emailed_at", "is", null),
   ]);
   if (error) throw new Error(`Loading brands failed: ${error.message}`);
   const doneIds = new Set((done ?? []).map((s) => s.brand_id));
@@ -56,4 +60,49 @@ export async function getBrandWithCustomer(brandId: string) {
     .single();
   if (error || !data) throw new Error(`Brand not found: ${error?.message}`);
   return data as unknown as BrandWithCustomer;
+}
+
+// Next free report waiting in the queue: run it, email it, record the result.
+export async function runNextFreeReport() {
+  const db = supabaseAdmin();
+  const { data: job } = await db
+    .from("free_reports")
+    .select("id, email, brand, website, questions")
+    .eq("status", "pending")
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  if (!job) return null;
+
+  // Claim it so an overlapping run doesn't send it twice.
+  const { data: claimed } = await db
+    .from("free_reports")
+    .update({ status: "running" })
+    .eq("id", job.id)
+    .eq("status", "pending")
+    .select("id");
+  if (!claimed?.length) return null;
+
+  try {
+    const report = await buildReport({ name: job.brand, website: job.website, questions: job.questions });
+    await sendReportEmail(job.email, report, { free: true });
+    await db
+      .from("free_reports")
+      .update({ status: "sent", score: report.score, total: report.total, sent_at: new Date().toISOString() })
+      .eq("id", job.id);
+    return { brand: job.brand, ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Free report failed for ${job.brand}:`, err);
+    await db.from("free_reports").update({ status: "failed", error: message.slice(0, 500) }).eq("id", job.id);
+    return { brand: job.brand, ok: false, error: message };
+  }
+}
+
+// One job per cron run keeps each run well inside Cloudflare's limits.
+export async function runNextJob() {
+  const free = await runNextFreeReport();
+  if (free) return { kind: "free", ...free };
+  const [paid] = await runWeeklyBatch(1);
+  return paid ? { kind: "subscriber", ...paid } : { kind: "idle" };
 }

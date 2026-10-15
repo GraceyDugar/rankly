@@ -5,7 +5,8 @@ function esc(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-export function reportEmailHtml(r: Report) {
+// `free`: one-off free report, so end with an upgrade button.
+export function reportEmailHtml(r: Report, opts: { free?: boolean } = {}) {
   const change =
     r.previousScore === null
       ? "Your first report"
@@ -48,6 +49,15 @@ export function reportEmailHtml(r: Report) {
       <p style="margin:24px 0 8px;font-size:13px;font-weight:600;color:#16130f">This week's 3 fixes</p>
       <ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.5;color:#16130f">${fixes}</ol>
 
+      ${
+        opts.free
+          ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;background:#16130f;border-radius:12px"><tr><td style="padding:20px">
+        <p style="margin:0;font-size:15px;font-weight:600;color:#f8f5f0">AI answers change every week.</p>
+        <p style="margin:6px 0 16px;font-size:14px;color:#c9c2b8">Get this report every Monday, see if your fixes work, and catch competitors overtaking you.</p>
+        <a href="${site.url}/#pricing" style="display:inline-block;background:#b9532c;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:10px 18px;border-radius:8px">Track it weekly · $${site.price}/month →</a>
+      </td></tr></table>`
+          : ""
+      }
       <p style="margin:28px 0 0;font-size:12px;color:#6b645b">AI visibility check by ${esc(site.name)} · ${esc(site.url.replace(/^https?:\/\//, ""))}</p>
     </td></tr>
   </table></td></tr></table></body></html>`;
@@ -55,7 +65,7 @@ export function reportEmailHtml(r: Report) {
 
 // Sends through Resend's REST API. Until rankly.world is verified in Resend,
 // the default sender can only deliver to the Resend account's own email.
-export async function sendReportEmail(to: string, r: Report) {
+export async function sendReportEmail(to: string, r: Report, opts: { free?: boolean } = {}) {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY is not set");
   const res = await fetch("https://api.resend.com/emails", {
@@ -65,8 +75,10 @@ export async function sendReportEmail(to: string, r: Report) {
       from: process.env.EMAIL_FROM || `${site.name} <onboarding@resend.dev>`,
       to: [to],
       reply_to: site.supportEmail,
-      subject: `${r.brand.name}: AI visibility ${r.score}/${r.total} this week`,
-      html: reportEmailHtml(r),
+      subject: opts.free
+        ? `Your free AI visibility report: ${r.brand.name} ${r.score}/${r.total}`
+        : `${r.brand.name}: AI visibility ${r.score}/${r.total} this week`,
+      html: reportEmailHtml(r, opts),
     }),
   });
   if (!res.ok) throw new Error(`Resend error ${res.status}: ${(await res.text()).slice(0, 200)}`);

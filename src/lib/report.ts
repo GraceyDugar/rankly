@@ -10,8 +10,11 @@ export type Brand = {
   customer_id: string;
 };
 
+// What a report needs to know about the brand (saved brands and free reports).
+export type ReportTarget = Pick<Brand, "name" | "website" | "questions">;
+
 export type Report = {
-  brand: Brand;
+  brand: ReportTarget;
   weekOf: string;
   score: number;
   total: number;
@@ -35,7 +38,7 @@ const FIXES_SCHEMA = {
   required: ["fixes"],
 };
 
-async function writeFixes(brand: Brand, report: Omit<Report, "fixes">): Promise<string[]> {
+async function writeFixes(brand: ReportTarget, report: Omit<Report, "fixes">): Promise<string[]> {
   const lines = report.results
     .map((r) => `- "${r.keyword}": ${r.mentioned ? `mentioned at #${r.position ?? "?"}` : "NOT mentioned"}; AI named: ${r.competitors.slice(0, 5).join(", ") || "none"}`)
     .join("\n");
@@ -63,11 +66,11 @@ Rules: each fix is one sentence, under 25 words, starts with a verb, names a spe
   ];
 }
 
-// Ask AI every question for one brand, then save the weekly report.
-export async function runBrandReport(brand: Brand): Promise<Report> {
-  const db = supabaseAdmin();
-  const weekOf = currentWeekOf();
-
+// Ask AI every question for a brand and build the report (no saving).
+export async function buildReport(
+  brand: ReportTarget,
+  previousScore: number | null = null,
+): Promise<Report & { answers: string[] }> {
   const results: Report["results"] = [];
   const answers: string[] = [];
   for (const q of brand.questions) {
@@ -89,6 +92,24 @@ export async function runBrandReport(brand: Brand): Promise<Report> {
     .slice(0, 5)
     .map(([name, count]) => ({ name, count }));
 
+  const base = {
+    brand,
+    weekOf: currentWeekOf(),
+    score: results.filter((r) => r.mentioned).length,
+    total: results.length,
+    previousScore,
+    results,
+    topCompetitors,
+  };
+  const fixes = await writeFixes(brand, base);
+  return { ...base, fixes, answers };
+}
+
+// Build and save the weekly report for a subscriber's brand.
+export async function runBrandReport(brand: Brand): Promise<Report> {
+  const db = supabaseAdmin();
+  const weekOf = currentWeekOf();
+
   const { data: prev } = await db
     .from("scans")
     .select("score")
@@ -98,16 +119,9 @@ export async function runBrandReport(brand: Brand): Promise<Report> {
     .limit(1)
     .maybeSingle();
 
-  const base = {
-    brand,
-    weekOf,
-    score: results.filter((r) => r.mentioned).length,
-    total: results.length,
-    previousScore: prev?.score ?? null,
-    results,
-    topCompetitors,
-  };
-  const fixes = await writeFixes(brand, base);
+  const report = await buildReport(brand, prev?.score ?? null);
+  const { answers, ...base } = report;
+  const { results, fixes } = report;
 
   const { data: scan, error } = await db
     .from("scans")

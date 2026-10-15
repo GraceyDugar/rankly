@@ -9,9 +9,9 @@
     "binding": "ASSETS"
   },
   "observability": { "enabled": true },
-  // Weekly reports: every 5 minutes on Mondays (UTC), one brand per run,
-  // until every active customer has this week's report.
-  "triggers": { "crons": ["*/5 * * * 1"] },
+  // Report queue: every minute, one job per run (free reports, new
+  // customers' first reports, and Monday weekly reports).
+  "triggers": { "crons": ["* * * * *"] },
   // Keep variables added in the Cloudflare dashboard (like the Supabase
   // URL/anon key) instead of wiping them on each deploy. Secrets are
   // always kept and never belong in this file.

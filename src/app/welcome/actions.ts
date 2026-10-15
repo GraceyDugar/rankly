@@ -1,6 +1,5 @@
 "use server";
 
-import { after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export type WelcomeState = { ok?: boolean; error?: string; pending?: boolean };
@@ -63,20 +62,7 @@ export async function saveBrand(_prev: WelcomeState, formData: FormData): Promis
     : await db.from("brands").insert({ customer_id: customer.id, name, website, questions }).select("id").single();
   if (error || !brand) return { error: "Couldn't save. Please try again." };
 
-  // First report right away, so customers see value today, not next Monday.
-  after(async () => {
-    try {
-      const { getBrandWithCustomer, markEmailed } = await import("@/lib/weekly");
-      const { runBrandReport } = await import("@/lib/report");
-      const { sendReportEmail } = await import("@/lib/email");
-      const full = await getBrandWithCustomer(brand.id);
-      const report = await runBrandReport(full);
-      await sendReportEmail(full.customers.email, report);
-      await markEmailed(full.id, report.weekOf);
-    } catch (err) {
-      console.error("First report failed:", err);
-    }
-  });
-
+  // The cron queue picks up new customers within a minute or two and sends
+  // their first report (a full report takes longer than a request can wait).
   return { ok: true };
 }

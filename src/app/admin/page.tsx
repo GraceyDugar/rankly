@@ -28,6 +28,16 @@ type BrandRow = {
   scans: { week_of: string; score: number; total: number }[];
 };
 
+type Lead = {
+  id: string;
+  email: string;
+  brand: string;
+  status: string;
+  score: number | null;
+  total: number | null;
+  created_at: string;
+};
+
 type Signup = { id: string; email: string; brand: string | null; created_at: string };
 
 async function countSince(table: string, sinceMs?: number) {
@@ -58,7 +68,7 @@ async function Dashboard() {
 
   const DAY = 24 * 60 * 60 * 1000;
   const db = supabaseAdmin();
-  const [today, week, allTime, activeCustomers, checksRes, signupsRes, brandsRes] = await Promise.all([
+  const [today, week, allTime, activeCustomers, checksRes, signupsRes, brandsRes, leadsRes] = await Promise.all([
     countSince("free_checks", DAY),
     countSince("free_checks", 7 * DAY),
     countSince("free_checks"),
@@ -74,7 +84,13 @@ async function Dashboard() {
       .select("id, name, questions, customers!inner(email, status), scans(week_of, score, total)")
       .order("created_at", { ascending: false })
       .limit(200),
+    db
+      .from("free_reports")
+      .select("id, email, brand, status, score, total, created_at", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
+  const leads = (leadsRes.data ?? []) as Lead[];
   const brands = (brandsRes.data ?? []) as unknown as BrandRow[];
   const signups = (signupsRes.data ?? []) as Signup[];
 
@@ -96,14 +112,40 @@ async function Dashboard() {
         </form>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-6">
+      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-7">
         <Stat label="Checks today" value={today} />
         <Stat label="Checks · 7 days" value={week} />
         <Stat label="Checks · all time" value={allTime} />
         <Stat label="Mentioned rate" value={`${mentionRate}%`} />
         <Stat label="Early access" value={signupsRes.count ?? 0} />
+        <Stat label="Free reports" value={leadsRes.count ?? 0} />
         <Stat label="Paying customers" value={activeCustomers.count ?? 0} />
       </div>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold tracking-tight">Free reports (leads)</h2>
+        <p className="mt-1 text-sm text-muted">People who got a free full report. Low scores are your warmest leads.</p>
+        <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
+          {leads.length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-muted">No free reports yet.</p>
+          ) : (
+            <table className="w-full min-w-[560px] text-left text-sm">
+              <tbody className="divide-y divide-line">
+                {leads.map((l) => (
+                  <tr key={l.id}>
+                    <td className="px-4 py-3 font-medium">{l.email}</td>
+                    <td className="px-4 py-3">{l.brand}</td>
+                    <td className="px-4 py-3 text-muted">
+                      {l.status === "sent" ? `${l.score}/${l.total}` : l.status}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-muted">{when(l.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold tracking-tight">Early access list</h2>

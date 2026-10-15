@@ -14,7 +14,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  const event = JSON.parse(body) as { type?: string; data?: SubscriptionData };
+  let event: { type?: string; data?: SubscriptionData };
+  try {
+    event = JSON.parse(body);
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const type = event.type ?? "";
   const status = statusForEvent(type);
   if (!status) return Response.json({ ok: true, ignored: type });

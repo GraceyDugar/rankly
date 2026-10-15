@@ -67,13 +67,15 @@ export async function verifyWebhook(headers: Headers, body: string) {
   const ageSeconds = Math.abs(Date.now() / 1000 - Number(timestamp));
   if (!Number.isFinite(ageSeconds) || ageSeconds > 5 * 60) return false;
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    base64ToBytes(secret.replace(/^whsec_/, "")),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
+  // Tolerate stray quotes/whitespace from copy-pasting the secret.
+  const cleaned = secret.trim().replace(/^["']|["']$/g, "").trim().replace(/^whsec_/, "");
+  let key: CryptoKey;
+  try {
+    key = await crypto.subtle.importKey("raw", base64ToBytes(cleaned), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  } catch (err) {
+    console.error("DODO_WEBHOOK_SECRET is not a valid whsec_ secret:", err);
+    return false;
+  }
   const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${id}.${timestamp}.${body}`));
   const expected = btoa(String.fromCharCode(...new Uint8Array(mac)));
 

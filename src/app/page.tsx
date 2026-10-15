@@ -76,6 +76,30 @@ function ReportCard() {
   );
 }
 
+// "Why not just ask AI yourself?" comparison. true = yes, false = no, string = detail.
+const compareCols = [
+  { full: "Asking AI yourself", short: "DIY" },
+  { full: "Big AI SEO tools", short: "Big tools" },
+  { full: "Rankly", short: "Rankly" },
+] as const;
+const compareRows: { label: string; values: (boolean | string)[] }[] = [
+  { label: "Unbiased answer, like a new customer", values: [false, true, true] },
+  { label: "Checked automatically every week", values: [false, true, true] },
+  { label: "Trend: are you winning or losing?", values: [false, true, true] },
+  { label: "Who beats you, and how often", values: [false, true, true] },
+  { label: "3 specific fixes for your questions", values: [false, "Some", true] },
+  { label: "Setup time", values: ["Every week", "Hours", "2 min"] },
+  { label: "Price", values: ["Your time", "$50–500/mo", "$9/mo"] },
+];
+
+// "Why $9?" bars: monthly cost of each option (approximate).
+const costBars = [
+  { label: "AI SEO agency", cost: 500, note: "$500+/mo" },
+  { label: "Big AI SEO tools", cost: 150, note: "$50–500/mo" },
+  { label: "Your time, ~1 hr/week", cost: 100, note: "≈ 4 hrs/mo" },
+  { label: "Rankly", cost: 9, note: "$9/mo" },
+];
+
 const deliverables = [
   { title: "5 questions tracked", body: "What your customers ask AI." },
   { title: "Weekly AI check", body: "Every Monday. Fully automatic." },
@@ -194,6 +218,7 @@ export default function Home() {
           <Logo />
           <div className="hidden items-center gap-8 text-[15px] text-muted md:flex">
             <a href="#how" className="hover:text-foreground">How it works</a>
+            <a href="#compare" className="hover:text-foreground">Why Rankly</a>
             <a href="#value" className="hover:text-foreground">What you get</a>
             <a href="#pricing" className="hover:text-foreground">Pricing</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
@@ -284,17 +309,89 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="mt-6 grid gap-4 text-sm sm:grid-cols-3">
-              {[
-                ["By hand", "~1 hr every week"],
-                ["Other AI SEO tools", "$50+/month"],
-                [site.name, `$${site.price}/month, automatic`],
-              ].map(([who, cost], i) => (
-                <div key={who} className={`rounded-2xl border p-5 ${i === 2 ? "border-accent/40 bg-accent-soft/50" : "border-line"}`}>
-                  <p className={`font-mono text-xs uppercase tracking-widest ${i === 2 ? "text-accent" : "text-muted"}`}>{who}</p>
-                  <p className="mt-1 text-lg font-semibold tracking-tight">{cost}</p>
-                </div>
-              ))}
+          </div>
+        </section>
+
+        {/* Why not just ask AI yourself? */}
+        <section id="compare" className="mx-auto max-w-6xl scroll-mt-20 px-6 pb-24">
+          <Label>{"// why rankly"}</Label>
+          <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+            Why not just <span className="font-serif font-normal italic text-accent">ask AI yourself?</span>
+          </h2>
+          <p className="mt-3 text-lg text-muted">AI remembers you, and answers change every time. One check proves nothing.</p>
+          <div className="mt-10 overflow-hidden rounded-3xl border border-line bg-card">
+            <table className="w-full table-fixed text-left">
+              <colgroup>
+                <col className="w-[40%] sm:w-[34%]" />
+                <col />
+                <col />
+                <col />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-line">
+                  <th className="px-3 py-5 sm:px-6" />
+                  {compareCols.map((c, i) => (
+                    <th
+                      key={c.full}
+                      className={`px-1 py-5 text-center text-xs font-semibold sm:px-4 sm:text-sm ${i === 2 ? "bg-accent-soft/60 text-accent" : "text-muted"}`}
+                    >
+                      <span className="sm:hidden">{c.short}</span>
+                      <span className="hidden sm:inline">{c.full}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {compareRows.map((row) => (
+                  <tr key={row.label}>
+                    <td className="px-3 py-4 text-[13px] leading-snug sm:px-6 sm:text-[15px]">{row.label}</td>
+                    {row.values.map((v, i) => (
+                      <td key={i} className={`px-1 py-4 text-center sm:px-4 ${i === 2 ? "bg-accent-soft/60 font-semibold" : ""}`}>
+                        {v === true ? (
+                          <span className={i === 2 ? "text-accent" : "text-emerald-700"} aria-label="Yes">✓</span>
+                        ) : v === false ? (
+                          <span className="text-muted/50" aria-label="No">✕</span>
+                        ) : (
+                          <span className={`text-xs sm:text-sm ${i === 2 ? "text-foreground" : "text-muted"}`}>{v}</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Why $9? */}
+        <section className="mx-auto max-w-6xl px-6 pb-24">
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.3fr]">
+            <div>
+              <Label>{"// why $9"}</Label>
+              <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+                The same insight, <span className="font-serif font-normal italic text-accent">a fraction of the cost.</span>
+              </h2>
+              <p className="mt-3 text-lg text-muted">Less than $3 a week. Cheaper than one coffee.</p>
+            </div>
+            <div className="space-y-5 rounded-3xl border border-line bg-card p-7">
+              {costBars.map((b) => {
+                const mine = b.label === site.name;
+                return (
+                  <div key={b.label}>
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className={mine ? "font-semibold text-accent" : "text-muted"}>{b.label}</span>
+                      <span className={mine ? "font-semibold text-accent" : "text-muted"}>{b.note}</span>
+                    </div>
+                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-background">
+                      <div
+                        className={`h-full rounded-full ${mine ? "bg-accent" : "bg-foreground/20"}`}
+                        style={{ width: `${Math.max(3, (b.cost / costBars[0].cost) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <p className="pt-1 text-xs text-muted">Typical monthly costs. Your time valued at ~$25/hour.</p>
             </div>
           </div>
         </section>

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#b9532c" opacity="0.18"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#3c1e0a" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="#f8f5f0"/>
+  <rect x="640" y="0" width="560" height="630" fill="url(#dots)"/>
+  <!-- faint grid lines -->
+  <g stroke="#e6dfd4" stroke-width="1">
+    <line x1="300" y1="0" x2="300" y2="630"/><line x1="600" y1="0" x2="600" y2="630"/><line x1="900" y1="0" x2="900" y2="630"/>
+  </g>
+
+  <!-- logo -->
+  <rect x="72" y="64" width="52" height="52" rx="14" fill="#16130f"/>
+  <text x="97" y="102" text-anchor="middle" font-family="Georgia" font-style="italic" font-size="36" fill="#f8f5f0">R</text>
+  <circle cx="114" cy="78" r="4.5" fill="#b9532c"/>
+  <text x="140" y="101" font-family="Helvetica Neue, Helvetica, Arial" font-weight="600" font-size="32" fill="#16130f">Rankly</text>
+
+  <!-- label -->
+  <text x="72" y="205" font-family="Menlo, monospace" font-size="18" letter-spacing="3" fill="#6b645b">AI VISIBILITY TRACKER · AEO &amp; GEO</text>
+
+  <!-- headline -->
+  <text x="68" y="305" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="86" letter-spacing="-3" fill="#16130f">Get on AI's</text>
+  <text x="70" y="395" font-family="Georgia" font-style="italic" font-size="92" fill="#b9532c">shortlist.</text>
+
+  <text x="72" y="468" font-family="Helvetica Neue, Helvetica, Arial" font-size="27" fill="#6b645b">See if AI search recommends your business —</text>
+  <text x="72" y="506" font-family="Helvetica Neue, Helvetica, Arial" font-size="27" fill="#6b645b">and who it names instead.</text>
+
+  <!-- CTA chip -->
+  <rect x="72" y="540" width="330" height="50" rx="25" fill="#16130f"/>
+  <text x="237" y="572" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial" font-weight="600" font-size="20" fill="#f8f5f0">Free check at rankly.world</text>
+
+  <!-- report card -->
+  <g filter="url(#shadow)">
+    <rect x="700" y="110" width="430" height="410" rx="28" fill="#fffdf9" stroke="#e6dfd4"/>
+  </g>
+  <text x="732" y="158" font-family="Menlo, monospace" font-size="14" fill="#6b645b">// monday report</text>
+  <text x="732" y="196" font-family="Menlo, monospace" font-size="15" fill="#6b645b">Q: "best CRM for freelancers"</text>
+  <text x="732" y="242" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="30" letter-spacing="-0.5" fill="#16130f">AI recommends your</text>
+  <text x="732" y="282" font-family="Georgia" font-style="italic" font-size="34" fill="#b9532c">competitor.</text>
+
+  <g font-family="Helvetica Neue, Helvetica, Arial" font-size="17">
+    <rect x="732" y="306" width="366" height="46" rx="12" fill="#f8f5f0" stroke="#e6dfd4"/>
+    <text x="750" y="335" fill="#6b645b" font-family="Menlo, monospace" font-size="14">#1</text>
+    <text x="786" y="335" fill="#16130f">Northwind CRM</text>
+    <rect x="976" y="318" width="108" height="24" rx="12" fill="#e7f6ee"/>
+    <text x="1030" y="335" text-anchor="middle" font-size="13" fill="#047857">recommended</text>
+
+    <rect x="732" y="360" width="366" height="46" rx="12" fill="#f8f5f0" stroke="#e6dfd4"/>
+    <text x="750" y="389" fill="#6b645b" font-family="Menlo, monospace" font-size="14">#2</text>
+    <text x="786" y="389" fill="#16130f">Ledgerly</text>
+    <rect x="976" y="372" width="108" height="24" rx="12" fill="#e7f6ee"/>
+    <text x="1030" y="389" text-anchor="middle" font-size="13" fill="#047857">recommended</text>
+
+    <rect x="732" y="414" width="366" height="46" rx="12" fill="#f8f5f0" stroke="#e6dfd4"/>
+    <text x="750" y="443" fill="#6b645b" font-family="Menlo, monospace" font-size="14">—</text>
+    <text x="786" y="443" fill="#16130f" font-weight="600">You</text>
+    <rect x="964" y="426" width="120" height="24" rx="12" fill="#f3e2d7"/>
+    <text x="1024" y="443" text-anchor="middle" font-size="13" fill="#b9532c">not mentioned</text>
+  </g>
+  <text x="732" y="495" font-family="Menlo, monospace" font-size="13" fill="#6b645b">AI VISIBILITY SCORE</text>
+  <text x="1098" y="497" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="30" fill="#16130f">2<tspan font-size="18" fill="#6b645b">/5</tspan></text>
+</svg>

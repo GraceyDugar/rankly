@@ -1,6 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <rect width="1024" height="1024" fill="#f8f5f0"/>
-  <rect x="152" y="152" width="720" height="720" rx="160" fill="#16130f"/>
-  <text x="512" y="660" text-anchor="middle" font-family="Georgia" font-style="italic" font-size="520" fill="#f8f5f0">R</text>
-  <circle cx="742" cy="282" r="44" fill="#b9532c"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="15" fill="#b9532c"/>
+  <line x1="32" y1="9" x2="32" y2="17" stroke="#16130f" stroke-width="3.2" stroke-linecap="round"/>
+  <circle cx="32" cy="8" r="4.6" fill="#f8f5f0"/>
+  <rect x="10" y="17" width="44" height="36" rx="13" fill="#16130f"/>
+  <rect x="16" y="23" width="32" height="22" rx="8" fill="#f8f5f0"/>
+  <circle cx="25" cy="34" r="3.6" fill="#16130f"/>
+  <circle cx="39" cy="34" r="3.6" fill="#16130f"/>
+  <circle cx="20" cy="40.5" r="2" fill="#b9532c" opacity="0.7"/>
+  <circle cx="44" cy="40.5" r="2" fill="#b9532c" opacity="0.7"/>
 </svg>

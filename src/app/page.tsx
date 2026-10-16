@@ -3,13 +3,12 @@ import Mascot from "@/components/Mascot";
 import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
 import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
+import LogoMark from "@/components/LogoMark";
 
 function Logo() {
   return (
     <a href="#" className="flex items-center gap-2 text-[17px] font-semibold tracking-tight">
-      <span className="grid size-7 place-items-center rounded-lg bg-foreground font-serif text-lg italic text-background">
-        {site.name[0]}
-      </span>
+      <LogoMark />
       {site.name}
     </a>
   );

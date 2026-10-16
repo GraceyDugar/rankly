@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { site } from "@/lib/site";
+import LogoMark from "@/components/LogoMark";
 
 // Shared layout for the Terms, Privacy and Refund pages.
 export default function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
@@ -8,9 +9,7 @@ export default function LegalPage({ title, updated, children }: { title: string;
       <header className="border-b border-line">
         <nav className="mx-auto flex h-16 max-w-3xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2 text-[17px] font-semibold tracking-tight">
-            <span className="grid size-7 place-items-center rounded-lg bg-foreground font-serif text-lg italic text-background">
-              {site.name[0]}
-            </span>
+            <LogoMark />
             {site.name}
           </Link>
           <Link href="/" className="text-sm text-muted hover:text-foreground">← Back to home</Link>

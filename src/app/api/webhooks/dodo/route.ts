@@ -55,6 +55,25 @@ export async function POST(request: Request) {
     }
   }
 
+  // Heads-up to the founder for the events that matter.
+  const { notifyOwner } = await import("@/lib/email");
+  const who = email || subscriptionId || "unknown";
+  try {
+    if (type === "subscription.active") {
+      const { data: c } = await db.from("customers").select("welcome_sent_at").eq("dodo_subscription_id", subscriptionId ?? "").maybeSingle();
+      // Only the first activation, not every retry of the same event.
+      if (!c?.welcome_sent_at) await notifyOwner(`🎉 New Rankly trial: ${who}`, [`${who} just started a 7-day trial.`, "They'll be charged $9 automatically on day 7 unless they cancel."]);
+    } else if (type === "subscription.renewed") {
+      await notifyOwner(`💰 Rankly payment: ${who}`, [`${who} was charged $9 (trial converted or monthly renewal).`]);
+    } else if (type === "subscription.cancelled" || type === "subscription.expired") {
+      await notifyOwner(`Rankly cancellation: ${who}`, [`${who}'s subscription was ${type.split(".")[1]}. Weekly reports stop.`]);
+    } else if (type === "subscription.failed" || type === "subscription.on_hold") {
+      await notifyOwner(`⚠️ Rankly payment problem: ${who}`, [`${who}'s payment failed (${type}). Dodo will retry.`]);
+    }
+  } catch (err) {
+    console.error("Owner notification failed:", err);
+  }
+
   // New subscriber with no brand yet: email their personal setup link once.
   if (status === "active" && subscriptionId) {
     const { data: customer } = await db

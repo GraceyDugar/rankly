@@ -122,3 +122,25 @@ export async function sendSetupEmail(to: string, setupUrl: string, reminder = fa
 export function setupUrl(subscriptionId: string) {
   return `${site.url}/welcome?subscription_id=${encodeURIComponent(subscriptionId)}&status=active`;
 }
+
+// Short heads-up to the founder (ADMIN_EMAIL) about new trials and cancellations.
+export async function notifyOwner(subject: string, lines: string[]) {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ADMIN_EMAIL;
+  if (!key || !to) return;
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#16130f">
+    ${lines.map((l) => `<p style="margin:0 0 8px">${esc(l)}</p>`).join("")}
+    <p style="margin:16px 0 0"><a href="${site.url}/admin" style="color:#b9532c">Open your admin dashboard →</a></p>
+  </div>`;
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || `${site.name} <onboarding@resend.dev>`,
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+  if (!res.ok) console.error("Owner notification failed:", res.status, (await res.text()).slice(0, 200));
+}

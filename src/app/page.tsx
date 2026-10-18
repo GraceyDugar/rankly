@@ -1,5 +1,6 @@
 import FreeScan from "@/components/FreeScan";
 import Mascot from "@/components/Mascot";
+import LiveActivity from "@/components/LiveActivity";
 import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
 import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
@@ -165,7 +166,11 @@ const faqs = [
   },
   {
     q: "Is the free AI visibility check really free?",
-    a: "Yes. No card, no signup. Run a quick check on the homepage, then get one full report (up to 5 questions, competitors and 3 fixes) emailed to you, free.",
+    a: "Yes. No card, no signup. Run a quick check on the homepage anytime.",
+  },
+  {
+    q: "How does the 7-day free trial work?",
+    a: "Add your card, and your first full report arrives within minutes. You're only charged $9 after 7 days, then monthly. Cancel anytime during the trial and you pay nothing.",
   },
   {
     q: "Is my data safe?",
@@ -226,7 +231,7 @@ export default function Home() {
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </div>
           <CtaButton className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:bg-foreground/85">
-            {site.paymentsEnabled ? `Start for $${site.price}/mo` : "Get early access"}
+            {site.paymentsEnabled ? `Try free for ${site.trialDays} days` : "Get early access"}
           </CtaButton>
         </nav>
       </header>
@@ -253,6 +258,7 @@ export default function Home() {
               </p>
               <div className="mt-10 max-w-xl">
                 <FreeScan />
+                <LiveActivity />
               </div>
             </div>
 
@@ -438,20 +444,22 @@ export default function Home() {
             </div>
             <div className="rounded-3xl border border-line bg-card p-8 shadow-[0_30px_80px_-50px_rgba(60,30,10,0.5)]">
               <p className="mb-3 inline-block rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-                Founding price — locked in forever
+                {site.trialDays}-day free trial · founding price locked in
               </p>
               <div className="flex items-baseline gap-1">
                 <span className="text-6xl font-semibold tracking-tight">${site.price}</span>
                 <span className="text-muted">/month</span>
               </div>
+              <p className="mt-1 text-sm text-muted">after your {site.trialDays}-day free trial</p>
               <ul className="mt-6 space-y-3 text-[15px]">
                 {[
+                  "First report today, free",
                   "5 questions, checked every Monday",
                   "AI visibility score + rank",
                   "Competitors AI recommends",
                   "3 fixes every week",
                   "Clean checks, like a brand-new customer",
-                  "Cancel anytime",
+                  "Cancel anytime during the trial — pay nothing",
                 ].map((f) => (
                   <li key={f} className="flex gap-3">
                     <span className="text-accent">✓</span>
@@ -460,7 +468,7 @@ export default function Home() {
                 ))}
               </ul>
               <CtaButton className="mt-8 block w-full rounded-xl bg-accent py-3.5 text-center font-medium text-white hover:brightness-110">
-                {site.paymentsEnabled ? "Start tracking" : "Get early access — no payment today"}
+                {site.paymentsEnabled ? `Start ${site.trialDays}-day free trial` : "Get early access — no payment today"}
               </CtaButton>
             </div>
           </div>

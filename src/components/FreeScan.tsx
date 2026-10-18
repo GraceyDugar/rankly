@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { site } from "@/lib/site";
 import { usePaymentsEnabled } from "./PaymentsContext";
 import { CtaButton } from "./EarlyAccess";
-import FullReportForm from "./FullReportForm";
 
 // Rotating status words while the scan runs, so the wait feels alive.
 const VERBS = [
@@ -125,6 +124,7 @@ export default function FreeScan() {
           </button>
         </div>
       </form>
+      <p className="mt-2 text-xs text-muted/80">Your question (never your brand) may appear anonymously in the live feed below.</p>
       {loading && (
         <p className="mt-3 flex items-center gap-2 text-sm text-muted" aria-live="polite">
           <span className="size-2 animate-pulse rounded-full bg-accent" />
@@ -182,12 +182,18 @@ export default function FreeScan() {
             </p>
           )}
 
-          <FullReportForm brand={scannedBrand} firstQuestion={result.keyword} />
-
-          <CtaButton className="mt-3 w-full text-center text-sm text-muted underline underline-offset-4 hover:text-foreground">
-            {paymentsEnabled
-              ? `Or track it every Monday · $${site.price}/month →`
-              : "Or join early access for weekly tracking →"}
+          <CtaButton className="mt-6 flex w-full items-center justify-between gap-4 rounded-xl bg-foreground p-4 text-left text-background transition hover:bg-foreground/90">
+            <span>
+              <span className="block font-medium">Get your full report: 5 questions, competitors, 3 fixes</span>
+              <span className="block text-sm opacity-70">
+                {paymentsEnabled
+                  ? `Free for ${site.trialDays} days, then $${site.price}/month. Cancel anytime.`
+                  : "Join early access for weekly tracking."}
+              </span>
+            </span>
+            <span className="shrink-0 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white">
+              {paymentsEnabled ? "Try free →" : "Early access →"}
+            </span>
           </CtaButton>
         </div>
       )}

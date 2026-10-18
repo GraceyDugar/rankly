@@ -34,7 +34,7 @@ export async function saveBrand(_prev: WelcomeState, formData: FormData): Promis
     const { getSubscription } = await import("@/lib/dodo");
     const sub = await getSubscription(subscriptionId);
     const email = (sub?.metadata?.email || sub?.customer?.email || "").trim().toLowerCase();
-    if (sub?.status === "active" && email) {
+    if (sub && ["active", "trialing", "on_trial"].includes(sub.status) && email) {
       const { data } = await db
         .from("customers")
         .upsert(

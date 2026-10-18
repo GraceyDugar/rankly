@@ -5,12 +5,18 @@ export const metadata = { title: `Refund Policy — ${site.name}` };
 
 export default function Refund() {
   return (
-    <LegalPage title="Refund & Cancellation Policy" updated="October 13, 2026">
+    <LegalPage title="Refund & Cancellation Policy" updated="October 18, 2026">
       <h2>Cancel anytime</h2>
       <p>
         {site.name} is a ${site.price}/month subscription with no contract. You can cancel at any time, and you won&apos;t be
         charged again. To cancel, use the link in your payment receipt or email{" "}
         <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a> and we&apos;ll cancel it for you.
+      </p>
+
+      <h2>Free trial</h2>
+      <p>
+        Every subscription starts with a {site.trialDays}-day free trial. Cancel any time before it ends and you won&apos;t be
+        charged at all.
       </p>
 
       <h2>Refunds</h2>

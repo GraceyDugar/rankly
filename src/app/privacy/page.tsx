@@ -13,7 +13,7 @@ export default function Privacy() {
 
       <h2>What we collect</h2>
       <ul>
-        <li><strong>Free checks:</strong> the brand and question you enter, the result, and a one-way hash of your IP address (used only to limit free checks; we never store your actual IP).</li>
+        <li><strong>Free checks:</strong> the brand and question you enter, the result, and a one-way hash of your IP address (used only to limit free checks; we never store your actual IP). The question text (never the brand name) may appear anonymously in the live activity feed on our homepage.</li>
         <li><strong>Early access list:</strong> your email and, optionally, your brand name.</li>
         <li><strong>Subscribers:</strong> your email, your brand name and website, your questions, your weekly results, and your subscription status.</li>
         <li><strong>Payments:</strong> handled entirely by Dodo Payments. We receive your subscription status and an ID, never your card details.</li>

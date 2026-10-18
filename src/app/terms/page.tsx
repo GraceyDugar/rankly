@@ -5,7 +5,7 @@ export const metadata = { title: `Terms of Service — ${site.name}` };
 
 export default function Terms() {
   return (
-    <LegalPage title="Terms of Service" updated="October 13, 2026">
+    <LegalPage title="Terms of Service" updated="October 18, 2026">
       <p>
         These terms cover your use of {site.name} ({site.url.replace(/^https?:\/\//, "")}), an AI visibility tracker.
         By using the site or subscribing, you agree to them.
@@ -27,7 +27,8 @@ export default function Terms() {
 
       <h2>Subscriptions and billing</h2>
       <ul>
-        <li>The paid plan costs ${site.price} per month and renews automatically each month until cancelled.</li>
+        <li>New subscriptions start with a {site.trialDays}-day free trial. Your card is charged ${site.price} when the trial ends, unless you cancel before then.</li>
+        <li>After the trial, the plan costs ${site.price} per month and renews automatically each month until cancelled.</li>
         <li>Payments are processed by our payment partner, Dodo Payments, which acts as merchant of record. We never see or store your card details.</li>
         <li>You can cancel anytime. Cancelling stops future renewals. See our <a href="/refund">Refund Policy</a>.</li>
         <li>We may change prices with at least 30 days&apos; notice by email. Founding-member prices stay locked while your subscription remains active.</li>

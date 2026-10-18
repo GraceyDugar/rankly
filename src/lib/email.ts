@@ -58,7 +58,8 @@ export function reportEmailHtml(r: Report, opts: { free?: boolean } = {}) {
       </td></tr></table>`
           : ""
       }
-      <p style="margin:28px 0 0;font-size:12px;color:#6b645b">AI visibility check by ${esc(site.name)} · ${esc(site.url.replace(/^https?:\/\//, ""))}</p>
+      <p style="margin:24px 0 0;font-size:13px;color:#6b645b">Was this useful? <strong style="color:#16130f">Just hit reply</strong> and tell us. We read every message.</p>
+      <p style="margin:16px 0 0;font-size:12px;color:#6b645b">AI visibility check by ${esc(site.name)} · ${esc(site.url.replace(/^https?:\/\//, ""))}</p>
     </td></tr>
   </table></td></tr></table></body></html>`;
 }

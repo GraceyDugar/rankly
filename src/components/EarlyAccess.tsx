@@ -63,7 +63,7 @@ export function EarlyAccessDialog() {
     >
       <div className="p-7">
         <div className="flex items-start justify-between">
-          <p className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">Founding price — ${site.price}/mo forever</p>
+          <p className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">{site.trialDays} days free · then ${site.price}/mo</p>
           <form method="dialog">
             <button aria-label="Close" className="text-xl leading-none text-muted hover:text-foreground">×</button>
           </form>
@@ -79,11 +79,11 @@ export function EarlyAccessDialog() {
         ) : (
           <form onSubmit={onSubmit} className="mt-5 space-y-3">
             <h2 className="text-2xl font-semibold tracking-tight">
-              {paymentsEnabled ? `Start tracking — $${site.price}/month` : "Get early access"}
+              {paymentsEnabled ? `Start your ${site.trialDays}-day free trial` : "Get early access"}
             </h2>
             <p className="text-muted">
               {paymentsEnabled
-                ? "Enter your email to continue to secure checkout. Cancel anytime."
+                ? `First report today. $${site.price}/month after ${site.trialDays} days — cancel anytime before and pay nothing.`
                 : `Join the list and lock in $${site.price}/month forever. No payment today.`}
             </p>
             <input className={input} type="email" required placeholder="Your email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -94,7 +94,7 @@ export function EarlyAccessDialog() {
               disabled={loading}
               className="w-full rounded-xl bg-accent py-3.5 font-medium text-white hover:brightness-110 disabled:opacity-60"
             >
-              {loading ? (paymentsEnabled ? "Opening checkout…" : "Joining…") : paymentsEnabled ? "Continue to checkout →" : "Join early access"}
+              {loading ? (paymentsEnabled ? "Opening checkout…" : "Joining…") : paymentsEnabled ? "Start free trial →" : "Join early access"}
             </button>
             {error && <p className="text-sm text-red-700">{error}</p>}
           </form>

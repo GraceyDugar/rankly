@@ -1,6 +1,8 @@
 // Dodo Payments: checkout sessions + webhook verification (Standard Webhooks).
 // Docs: https://docs.dodopayments.com
 
+import { site } from "./site";
+
 function apiBase() {
   return process.env.DODO_MODE === "live" ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
 }
@@ -17,6 +19,8 @@ export async function createCheckout(email: string, returnUrl: string) {
       product_cart: [{ product_id: productId, quantity: 1 }],
       customer: { email },
       return_url: returnUrl,
+      // Free trial: card now, first charge after the trial.
+      subscription_data: { trial_period_days: site.trialDays },
       // Lets the webhook match the subscription back to our customer row.
       metadata: { email },
     }),

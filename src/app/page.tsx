@@ -233,7 +233,7 @@ export default function Home() {
             <a
               href="/llms.txt"
               title="A summary of Rankly written for AI assistants"
-              className="flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 font-mono text-xs text-foreground hover:border-accent/60"
+              className="flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 text-foreground hover:border-accent/60"
             >
               <span aria-hidden>🤖</span> llms.txt
             </a>

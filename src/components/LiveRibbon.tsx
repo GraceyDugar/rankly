@@ -12,22 +12,26 @@ function ago(iso: string) {
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-// Pop colours, Wispr-style pastels on a light background.
-const POP = ["#c9b8ff", "#8be3b8", "#ffd84d", "#ffa8c5", "#e8a07f"];
+// Same palette as the theme tokens in globals.css (SVG needs literal values).
+const INK = "#16130f";
+const CREAM = "#f8f5f0";
+const CARD = "#fffdf9";
+const LINE = "#e6dfd4";
+const ACCENT = "#b9532c";
+const ACCENT_SOFT = "#f3e2d7";
 
-// Little pastel chips that float around the robot.
-const CHIPS = [
-  { text: "Asking AI…", bg: "#ece4ff", fg: "#4b2fa3", x: "37%", y: "4%", delay: "0s" },
-  { text: "Who gets named?", bg: "#d9f6e7", fg: "#0b6b48", x: "55%", y: "0%", delay: "1.4s" },
-  { text: "#2 on the list", bg: "#fff1b8", fg: "#7a5a00", x: "57%", y: "80%", delay: "0.7s" },
-  { text: "3 fixes inside", bg: "#ffe0ea", fg: "#9b1d43", x: "35%", y: "84%", delay: "2.1s" },
+// Floating tiles around the robot, styled like the hero's engine tiles.
+const TILES = [
+  { glyph: "✦", name: "Asking AI", x: "35%", y: "0%", r: "-8deg", delay: "0s" },
+  { glyph: "?", name: "Who's named", x: "58%", y: "-2%", r: "6deg", delay: "1.5s" },
+  { glyph: "#2", name: "Your rank", x: "59%", y: "70%", r: "-4deg", delay: "0.8s" },
+  { glyph: "3", name: "Fixes", x: "37%", y: "72%", r: "5deg", delay: "2.2s" },
 ];
 
 const SPEED = 60; // user units per second along each curve
 
-// Real, anonymous free-check questions drift in from the left as loose
-// handwriting, pass through the Rankly robot, and leave on the right as a
-// bold ribbon of finished checks.
+// Real, anonymous free-check questions drift in from the left, pass through
+// the Rankly robot, and leave on the right as a ribbon of finished checks.
 export default function LiveRibbon() {
   const [items, setItems] = useState<Item[]>([]);
   const inPath = useRef<SVGTextPathElement>(null);
@@ -84,10 +88,9 @@ export default function LiveRibbon() {
   const raw = items.map((i) => `“${i.question.toLowerCase()}”   ·   `).join("");
   const done = items.map((it, i) => (
     <tspan key={i}>
-      <tspan fill={POP[i % POP.length]}>✓ </tspan>
-      <tspan>{it.question}</tspan>
-      <tspan fill="#f8f5f0" fillOpacity="0.45">{`  ${ago(it.at)}`}</tspan>
-      <tspan fill={POP[(i + 2) % POP.length]}>{"      ✦      "}</tspan>
+      {`✓ ${it.question}`}
+      <tspan fillOpacity="0.6">{`  ${ago(it.at)}`}</tspan>
+      <tspan fill={ACCENT_SOFT}>{"      ✦      "}</tspan>
     </tspan>
   ));
 
@@ -97,17 +100,22 @@ export default function LiveRibbon() {
 
   return (
     <section
-      className="relative overflow-hidden border-y border-line bg-[#fffaeb] pt-10 pb-8"
+      className="relative overflow-hidden pt-8 pb-10"
       aria-label="Recent AI visibility checks"
       onMouseEnter={() => (paused.current = true)}
       onMouseLeave={() => (paused.current = false)}
     >
+      <div
+        aria-hidden
+        className="dot-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_30%_55%_at_50%_58%,black,transparent)]"
+      />
+
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-6">
-        <span className="relative flex size-2.5">
+        <span className="relative flex size-2">
           <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-          <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500" />
+          <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
         </span>
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted">Happening on Rankly right now</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-muted">{"// happening on rankly right now"}</p>
       </div>
 
       <div className="relative left-1/2 w-full min-w-[920px] max-w-[1600px] -translate-x-1/2">
@@ -116,22 +124,15 @@ export default function LiveRibbon() {
             <path id="ribbon-in" d="M -80 215 C 180 60, 430 290, 740 150" />
             <path id="ribbon-out" d="M 860 150 C 1110 30, 1330 270, 1700 115" />
             <linearGradient id="ribbon-fade" gradientUnits="userSpaceOnUse" x1="0" x2="740" y1="0" y2="0">
-              <stop offset="0" stopColor="#16130f" stopOpacity="0" />
-              <stop offset="0.4" stopColor="#16130f" stopOpacity="0.4" />
-              <stop offset="1" stopColor="#16130f" stopOpacity="0.6" />
+              <stop offset="0" stopColor={INK} stopOpacity="0" />
+              <stop offset="0.4" stopColor={INK} stopOpacity="0.4" />
+              <stop offset="1" stopColor={INK} stopOpacity="0.6" />
             </linearGradient>
-            <radialGradient id="ribbon-glow">
-              <stop offset="0" stopColor="#c9b8ff" stopOpacity="0.55" />
-              <stop offset="0.5" stopColor="#ffd84d" stopOpacity="0.18" />
-              <stop offset="1" stopColor="#ffd84d" stopOpacity="0" />
-            </radialGradient>
           </defs>
 
           {/* Hidden copies, used only to measure one loop's length */}
           <text ref={inMeasure} {...inFont} opacity="0" x="0" y="-100" aria-hidden>{raw}</text>
           <text ref={outMeasure} {...outFont} opacity="0" x="0" y="-100" aria-hidden>{done}</text>
-
-          <circle cx="800" cy="150" r="190" fill="url(#ribbon-glow)" />
 
           {/* Raw questions drifting in */}
           <text {...inFont} fill="url(#ribbon-fade)">
@@ -141,10 +142,10 @@ export default function LiveRibbon() {
             </textPath>
           </text>
 
-          {/* Finished checks leaving on a dark ribbon */}
-          <use href="#ribbon-out" transform="translate(0 9)" fill="none" stroke="#c9b8ff" strokeWidth="56" strokeLinecap="round" />
-          <use href="#ribbon-out" fill="none" stroke="#16130f" strokeWidth="56" strokeLinecap="round" />
-          <text {...outFont} fill="#f8f5f0" dominantBaseline="central">
+          {/* Finished checks leaving on a terracotta ribbon with an ink edge, like the logo */}
+          <use href="#ribbon-out" transform="translate(0 8)" fill="none" stroke={INK} strokeWidth="56" strokeLinecap="round" />
+          <use href="#ribbon-out" fill="none" stroke={ACCENT} strokeWidth="56" strokeLinecap="round" />
+          <text {...outFont} fill={CREAM} dominantBaseline="central">
             <textPath ref={outPath} href="#ribbon-out" startOffset="0">
               {done}
               {done}
@@ -153,15 +154,15 @@ export default function LiveRibbon() {
 
           {/* The Rankly robot, listening */}
           <g transform="translate(800 150)">
-            <rect x="-100" y="-44" width="200" height="88" rx="44" fill="#ffffff" stroke="#16130f" strokeOpacity="0.08" strokeWidth="2" />
+            <rect x="-100" y="-44" width="200" height="88" rx="44" fill={CARD} stroke={LINE} strokeWidth="2" />
             <g transform="translate(-80 -24) scale(0.75)">
-              <rect width="64" height="64" rx="15" fill="#b9532c" />
-              <line x1="32" y1="9" x2="32" y2="17" stroke="#16130f" strokeWidth="3.2" strokeLinecap="round" />
-              <circle cx="32" cy="8" r="4.6" fill="#f8f5f0" />
-              <rect x="10" y="17" width="44" height="36" rx="13" fill="#16130f" />
-              <rect x="16" y="23" width="32" height="22" rx="8" fill="#f8f5f0" />
-              <circle className="ribbon-eye" cx="25" cy="34" r="3.6" fill="#16130f" />
-              <circle className="ribbon-eye" cx="39" cy="34" r="3.6" fill="#16130f" />
+              <rect width="64" height="64" rx="15" fill={ACCENT} />
+              <line x1="32" y1="9" x2="32" y2="17" stroke={INK} strokeWidth="3.2" strokeLinecap="round" />
+              <circle cx="32" cy="8" r="4.6" fill={CREAM} />
+              <rect x="10" y="17" width="44" height="36" rx="13" fill={INK} />
+              <rect x="16" y="23" width="32" height="22" rx="8" fill={CREAM} />
+              <circle className="ribbon-eye" cx="25" cy="34" r="3.6" fill={INK} />
+              <circle className="ribbon-eye" cx="39" cy="34" r="3.6" fill={INK} />
             </g>
             {[0, 1, 2, 3, 4, 5, 6].map((i) => (
               <rect
@@ -172,22 +173,23 @@ export default function LiveRibbon() {
                 width="6"
                 height="34"
                 rx="3"
-                fill={i % 2 ? "#16130f" : POP[(i / 2) % POP.length]}
+                fill={i % 2 ? ACCENT : INK}
                 style={{ animationDelay: `${i * 0.11}s` }}
               />
             ))}
           </g>
         </svg>
 
-        {CHIPS.map((c) => (
-          <span
-            key={c.text}
+        {TILES.map((t) => (
+          <div
+            key={t.name}
             aria-hidden
-            className="ribbon-chip pointer-events-none absolute hidden whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium shadow-[0_10px_24px_-12px_rgba(40,20,0,0.35)] sm:inline-block"
-            style={{ left: c.x, top: c.y, background: c.bg, color: c.fg, animationDelay: c.delay }}
+            className="float pointer-events-none absolute z-10 hidden flex-col items-center gap-1 rounded-2xl border border-line bg-card/90 px-4 py-3 shadow-[0_10px_30px_-15px_rgba(60,30,10,0.35)] backdrop-blur lg:flex"
+            style={{ left: t.x, top: t.y, animationDelay: t.delay, ["--r" as string]: t.r }}
           >
-            {c.text}
-          </span>
+            <span className="font-serif text-2xl italic text-accent">{t.glyph}</span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted">{t.name}</span>
+          </div>
         ))}
       </div>
     </section>

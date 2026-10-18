@@ -133,7 +133,7 @@ body {
   .live-fade { animation: none; }
 }
 
-/* Live ribbon: the robot's waveform, blinking eyes and floating chips. */
+/* Live ribbon: the robot's waveform and blinking eyes. */
 @keyframes ribbon-bar {
   0%, 100% { transform: scaleY(0.35); }
   50% { transform: scaleY(1); }
@@ -152,13 +152,6 @@ body {
   transform-origin: center;
   animation: ribbon-blink 4s infinite;
 }
-@keyframes ribbon-chip {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
-}
-.ribbon-chip {
-  animation: ribbon-chip 5s ease-in-out infinite;
-}
 @media (prefers-reduced-motion: reduce) {
-  .ribbon-bar, .ribbon-eye, .ribbon-chip { animation: none; }
+  .ribbon-bar, .ribbon-eye { animation: none; }
 }

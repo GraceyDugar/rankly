@@ -9,6 +9,14 @@ const DIALOG_ID = "early-access";
 // Every "$9" button on the site. Opens the dialog, which shows checkout
 // when payments are enabled and the early-access form otherwise.
 export function CtaButton({ className, children }: { className: string; children: React.ReactNode }) {
+  const paymentsEnabled = usePaymentsEnabled();
+  if (paymentsEnabled) {
+    return (
+      <a href="/start" className={className}>
+        {children}
+      </a>
+    );
+  }
   return (
     <button
       type="button"

@@ -289,7 +289,21 @@ export default function Home() {
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
               Set up once. <span className="font-serif font-normal italic text-accent">Rankly does the rest.</span>
             </h2>
-            <ol className="mt-12 grid gap-4 md:grid-cols-5">
+            {/* 25s product walkthrough, rendered from video/ with Remotion. */}
+            <div className="mt-12 overflow-hidden rounded-3xl border border-line bg-card shadow-[0_40px_100px_-50px_rgba(60,30,10,0.45)]">
+              <video
+                className="block aspect-video w-full"
+                src="/videos/how-rankly-works.mp4"
+                poster="/videos/how-rankly-works.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-label="How Rankly works: add your brand, Rankly asks AI, see who gets named, your AI visibility score, and the Monday report"
+              />
+            </div>
+            <ol className="mt-6 grid gap-4 md:grid-cols-5">
               {flow.map((f, i) => (
                 <li key={f.title} className="relative rounded-2xl border border-line bg-card p-5">
                   <div className="flex items-center justify-between">

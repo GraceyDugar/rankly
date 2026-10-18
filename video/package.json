@@ -1,0 +1,21 @@
+{
+  "name": "rankly-video",
+  "private": true,
+  "description": "Rankly launch and how-it-works videos, built with Remotion",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:intro": "remotion render src/index.ts Intro ../public/videos/rankly-intro.mp4",
+    "render:how": "remotion render src/index.ts HowItWorks ../public/videos/how-rankly-works.mp4 --crf=28"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.536",
+    "@remotion/google-fonts": "^4.0.536",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.536"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^5.9.3"
+  }
+}

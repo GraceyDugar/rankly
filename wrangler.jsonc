@@ -11,7 +11,8 @@
   "observability": { "enabled": true },
   // Report queue: every minute, one job per run (free reports, new
   // customers' first reports, and Monday weekly reports).
-  "triggers": { "crons": ["* * * * *"] },
+  // Daily summary email to the founder: 03:30 UTC = 9:00 IST (see worker.ts).
+  "triggers": { "crons": ["* * * * *", "30 3 * * *"] },
   // Keep variables added in the Cloudflare dashboard (like the Supabase
   // URL/anon key) instead of wiping them on each deploy. Secrets are
   // always kept and never belong in this file.

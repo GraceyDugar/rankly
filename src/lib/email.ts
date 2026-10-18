@@ -1,7 +1,7 @@
 import type { Report } from "./report";
 import { site } from "./site";
 
-function esc(s: string) {
+export function esc(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
@@ -125,13 +125,18 @@ export function setupUrl(subscriptionId: string) {
 
 // Short heads-up to the founder (ADMIN_EMAIL) about new trials and cancellations.
 export async function notifyOwner(subject: string, lines: string[]) {
-  const key = process.env.RESEND_API_KEY;
-  const to = process.env.ADMIN_EMAIL;
-  if (!key || !to) return;
   const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#16130f">
     ${lines.map((l) => `<p style="margin:0 0 8px">${esc(l)}</p>`).join("")}
     <p style="margin:16px 0 0"><a href="${site.url}/admin" style="color:#b9532c">Open your admin dashboard →</a></p>
   </div>`;
+  await emailOwner(subject, html);
+}
+
+// Any email to the founder (ADMIN_EMAIL): notifications and the daily summary.
+export async function emailOwner(subject: string, html: string) {
+  const key = process.env.RESEND_API_KEY;
+  const to = process.env.ADMIN_EMAIL;
+  if (!key || !to) return;
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -142,5 +147,5 @@ export async function notifyOwner(subject: string, lines: string[]) {
       html,
     }),
   });
-  if (!res.ok) console.error("Owner notification failed:", res.status, (await res.text()).slice(0, 200));
+  if (!res.ok) console.error("Owner email failed:", res.status, (await res.text()).slice(0, 200));
 }

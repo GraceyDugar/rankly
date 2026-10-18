@@ -8,6 +8,9 @@ import { c, mono, sans, serif } from "./theme";
  * soundtrack. The track is 120 BPM with its first beat at 0.464s, so every
  * cut sits on b(k). The music is the original's 0–32.464s followed by its
  * 46.464–59s (both bar lines), which keeps the hit, the silence and the ending.
+ *
+ * Legibility rule: people watch this on phones, where 1080p shrinks ~5×.
+ * Anything meant to be read is 40px or bigger; headlines are 100px+.
  */
 export const LAUNCH_FRAMES = 1350;
 const b = (k: number) => Math.round(13.92 + 15 * k);
@@ -15,7 +18,7 @@ const SPLICE = b(64); // 32.464s
 const B_START = Math.round(46.464 * 30);
 
 const SCENES: [string, number, number][] = [
-  ["wall", 0, b(8)],
+  ["ask", 0, b(8)],
   ["competitor", b(8), b(13)],
   ["logo", b(13), b(17)],
   ["shortlist", b(17), b(21)],
@@ -27,8 +30,7 @@ const SCENES: [string, number, number][] = [
   ["todo", b(49), b(57)],
   ["price", b(57), b(61)],
   ["bars", b(61), b(64)],
-  ["askai", b(64), b(67)],
-  ["stranger", b(67), b(71)],
+  ["keywords", b(64), b(71)],
   ["zero", b(71), b(74)],
   ["montage", b(74), b(79)],
   ["end", b(79), LAUNCH_FRAMES],
@@ -36,8 +38,13 @@ const SCENES: [string, number, number][] = [
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const ramp = (frame: number, start: number, len = 8) => interpolate(frame, [start, start + len], [0, 1], clamp);
+const Em: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = c.accentLight }) => (
+  <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, letterSpacing: 0, color }}>{children}</span>
+);
 
-// ---------- 1. A wall of AI answers where "you" are never mentioned ----------
+const RANKED = ["Northwind CRM", "Ledgerly", "Paperfin"];
+
+// ---------- Background: a wall of AI answers where "you" are never mentioned ----------
 const WALL = [
   ["best bakery in Austin", ["Crumb & Co", "Rise Bakehouse", "Little Oven"]],
   ["best CRM for freelancers", ["Northwind CRM", "Ledgerly", "Paperfin"]],
@@ -56,65 +63,118 @@ const WALL = [
 const Wall: React.FC = () => {
   const frame = useCurrentFrame();
   return (
+    <AbsoluteFill style={{ perspective: 1400 }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: -200,
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 40,
+          padding: 120,
+          transform: `rotateX(28deg) rotateZ(-6deg) translateY(${-frame * 2.2}px) scale(${1 + frame / 900})`,
+        }}
+      >
+        {WALL.map(([q, names], i) => (
+          <div
+            key={q}
+            style={{
+              background: c.ink2,
+              border: "1px solid rgba(248,245,240,0.08)",
+              borderRadius: 22,
+              padding: "22px 26px",
+              fontFamily: sans,
+              color: c.cream,
+              opacity: ramp(frame, i * 4, 10),
+            }}
+          >
+            <div style={{ fontFamily: mono, fontSize: 16, color: "rgba(248,245,240,0.5)" }}>{`// "${q}"`}</div>
+            {names.map((n, k) => (
+              <div key={n} style={{ fontSize: 22, marginTop: 8 }}>
+                <span style={{ fontFamily: mono, color: "rgba(248,245,240,0.4)", marginRight: 10 }}>{k + 1}</span>
+                {n}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ---------- 1. Customers ask AI. AI names 3. Not you. ----------
+const Ask: React.FC = () => {
+  const frame = useCurrentFrame();
+  const bar = useIn(8, 14);
+  const stamp = useIn(88, 11);
+  return (
     <AbsoluteFill>
       <DotGrid />
-      <AbsoluteFill style={{ perspective: 1400 }}>
-        <div
-          style={{
-            position: "absolute",
-            inset: -200,
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 40,
-            padding: 120,
-            transform: `rotateX(28deg) rotateZ(-6deg) translateY(${-frame * 2.2}px) scale(${1 + frame / 900})`,
-          }}
-        >
-          {WALL.map(([q, names], i) => {
-            const p = ramp(frame, i * 7, 10);
-            return (
+      <AbsoluteFill style={{ opacity: 0.35, filter: "blur(2px)" }}>
+        <Wall />
+      </AbsoluteFill>
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, rgba(22,19,15,0.82) 35%, rgba(22,19,15,0.97) 80%)" }} />
+      <Center>
+        <Slam size={116}>
+          Customers now ask <Em>AI.</Em>
+        </Slam>
+        <div style={{ marginTop: 60, width: 1280, opacity: bar, transform: `translateY(${(1 - bar) * 30}px)`, fontFamily: sans }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 26,
+              background: c.card,
+              color: c.ink,
+              borderRadius: 80,
+              padding: "30px 46px",
+              fontSize: 56,
+              boxShadow: "0 40px 90px -30px rgba(0,0,0,0.8)",
+            }}
+          >
+            <span style={{ color: c.accent }}>✦</span>
+            <Typed text="best CRM for freelancers?" start={16} speed={1.15} />
+          </div>
+          <div style={{ display: "flex", gap: 22, marginTop: 30, justifyContent: "center" }}>
+            {RANKED.map((n, i) => (
               <div
-                key={q}
+                key={n}
                 style={{
-                  background: c.ink2,
-                  border: "1px solid rgba(248,245,240,0.08)",
-                  borderRadius: 22,
-                  padding: "22px 26px",
-                  fontFamily: sans,
+                  fontSize: 46,
                   color: c.cream,
-                  opacity: p * 0.9,
-                  transform: `translateY(${(1 - p) * 40}px)`,
-                  boxShadow: "0 30px 60px -30px rgba(0,0,0,0.8)",
+                  background: "rgba(248,245,240,0.1)",
+                  border: "2px solid rgba(248,245,240,0.16)",
+                  borderRadius: 60,
+                  padding: "14px 32px",
+                  opacity: ramp(frame, 50 + i * 8, 6),
+                  transform: `translateY(${(1 - ramp(frame, 50 + i * 8, 6)) * 20}px)`,
                 }}
               >
-                <div style={{ fontFamily: mono, fontSize: 16, color: "rgba(248,245,240,0.5)" }}>{`// "${q}"`}</div>
-                {names.map((n, k) => (
-                  <div key={n} style={{ fontSize: 22, marginTop: 8 }}>
-                    <span style={{ fontFamily: mono, color: "rgba(248,245,240,0.4)", marginRight: 10 }}>{k + 1}</span>
-                    {n}
-                  </div>
-                ))}
-                <div
-                  style={{
-                    display: "inline-block",
-                    marginTop: 12,
-                    background: c.accent,
-                    color: "white",
-                    fontSize: 15,
-                    borderRadius: 20,
-                    padding: "4px 12px",
-                    opacity: ramp(frame, i * 7 + 8, 6),
-                  }}
-                >
-                  You: not mentioned
-                </div>
+                <span style={{ fontFamily: mono, fontSize: 34, color: c.accentLight, marginRight: 16 }}>#{i + 1}</span>
+                {n}
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </AbsoluteFill>
-      {/* Darken the edges so it reads as depth */}
-      <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(22,19,15,0.92) 80%)" }} />
+        <div
+          style={{
+            marginTop: 50,
+            background: c.accent,
+            color: "white",
+            fontFamily: sans,
+            fontWeight: 700,
+            fontSize: 72,
+            letterSpacing: "-0.03em",
+            borderRadius: 24,
+            padding: "16px 40px",
+            opacity: stamp,
+            transform: `rotate(-3deg) scale(${interpolate(stamp, [0, 1], [1.7, 1])})`,
+            boxShadow: "0 30px 70px -20px rgba(185,83,44,0.7)",
+          }}
+        >
+          You? Not mentioned.
+        </div>
+      </Center>
     </AbsoluteFill>
   );
 };
@@ -136,11 +196,12 @@ const Competitor: React.FC = () => {
   );
 };
 
-// ---------- 3. Robot logo reveal ----------
+// ---------- 3. Rankly, the AI visibility tracker ----------
 const Logo: React.FC = () => {
   const frame = useCurrentFrame();
   const pop = useIn(0, 9);
-  const word = useIn(30, 13);
+  const word = useIn(14, 13);
+  const tag = ramp(frame, 26, 8);
   return (
     <AbsoluteFill>
       <DotGrid />
@@ -155,9 +216,8 @@ const Logo: React.FC = () => {
             </span>
           </div>
         </div>
-        <div style={{ height: 40 }} />
-        <div style={{ opacity: ramp(frame, 40, 10) }}>
-          <Label color={c.accentLight}>{"// the AI visibility tracker"}</Label>
+        <div style={{ marginTop: 30, opacity: tag, transform: `translateY(${(1 - tag) * 24}px)`, fontFamily: serif, fontStyle: "italic", fontSize: 104, color: c.accentLight }}>
+          the AI visibility tracker
         </div>
       </Center>
     </AbsoluteFill>
@@ -179,7 +239,7 @@ const Shortlist: React.FC = () => (
   </AbsoluteFill>
 );
 
-// ---------- 5. Google shows 10 links, AI names 3 ----------
+// ---------- 5. Google shows 10 links, AI search names 3 ----------
 const Google: React.FC = () => {
   const frame = useCurrentFrame();
   const swap = frame >= 30;
@@ -188,12 +248,12 @@ const Google: React.FC = () => {
     <AbsoluteFill>
       <DotGrid />
       <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 140 }}>
-        <div style={{ fontFamily: sans, color: c.cream, width: 560 }}>
-          <Label color={c.accentLight}>{swap ? "AI names" : "Google shows"}</Label>
+        <div style={{ fontFamily: sans, color: c.cream, width: 620 }}>
+          <div style={{ fontSize: 64, fontWeight: 600, color: swap ? c.accentLight : "rgba(248,245,240,0.7)" }}>{swap ? "AI search names" : "Google shows"}</div>
           <div key={n} style={{ fontSize: 300, fontWeight: 700, letterSpacing: "-0.06em", lineHeight: 1, marginTop: 10, opacity: ramp(frame, swap ? 30 : 0, 6) }}>
             {n}
           </div>
-          <div style={{ fontSize: 60, color: "rgba(248,245,240,0.7)" }}>{swap ? "businesses." : "links."}</div>
+          <div style={{ fontSize: 64, color: "rgba(248,245,240,0.7)" }}>{swap ? "businesses." : "links."}</div>
         </div>
         <div style={{ width: 620 }}>
           {Array.from({ length: 10 }).map((_, i) => {
@@ -220,7 +280,6 @@ const Google: React.FC = () => {
 };
 
 // ---------- 6. Not on the list? You're invisible. ----------
-const RANKED = ["Northwind CRM", "Ledgerly", "Paperfin"];
 const Invisible: React.FC = () => {
   const frame = useCurrentFrame();
   const second = frame >= 30;
@@ -231,17 +290,17 @@ const Invisible: React.FC = () => {
       <Center>
         {second ? (
           <div style={{ display: "flex", alignItems: "baseline", gap: 28 }}>
-            <Slam delay={30} size={120}>
+            <Slam delay={30} size={130}>
               You&apos;re
             </Slam>
-            <Slam delay={36} size={150} italic color={c.accentLight}>
+            <Slam delay={36} size={160} italic color={c.accentLight}>
               invisible.
             </Slam>
           </div>
         ) : (
-          <Slam size={120}>Not on the list?</Slam>
+          <Slam size={130}>Not on the list?</Slam>
         )}
-        <div style={{ width: 900, marginTop: 60, fontFamily: sans }}>
+        <div style={{ width: 980, marginTop: 56, fontFamily: sans }}>
           {[...RANKED, "You"].map((n, i) => (
             <div
               key={n}
@@ -249,23 +308,21 @@ const Invisible: React.FC = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "18px 26px",
+                padding: "18px 30px",
                 marginTop: 12,
-                borderRadius: 16,
+                borderRadius: 18,
                 background: "rgba(248,245,240,0.06)",
                 border: "1px solid rgba(248,245,240,0.08)",
-                fontSize: 34,
+                fontSize: 46,
                 color: c.cream,
                 opacity: i === 3 ? youFade * ramp(frame, 14, 6) : ramp(frame, i * 4, 6),
               }}
             >
               <span>
-                <span style={{ fontFamily: mono, fontSize: 22, opacity: 0.5, marginRight: 20 }}>{i < 3 ? `#${i + 1}` : "—"}</span>
+                <span style={{ fontFamily: mono, fontSize: 34, opacity: 0.5, marginRight: 22 }}>{i < 3 ? `#${i + 1}` : "—"}</span>
                 {n}
               </span>
-              {i < 3 && (
-                <span style={{ fontSize: 20, background: "rgba(4,120,87,0.25)", color: "#7ee0b8", borderRadius: 20, padding: "4px 14px" }}>recommended</span>
-              )}
+              {i < 3 && <span style={{ fontSize: 30, background: "rgba(4,120,87,0.25)", color: "#7ee0b8", borderRadius: 30, padding: "6px 18px" }}>recommended</span>}
             </div>
           ))}
         </div>
@@ -288,33 +345,32 @@ const Check: React.FC = () => {
   const clickAt = 92;
   const asking = frame >= clickAt;
   // Cursor glides to the button, then clicks.
-  const cx = interpolate(frame, [70, 90], [1100, 1330], clamp);
-  const cy = interpolate(frame, [70, 90], [760, 640], clamp);
+  const cx = interpolate(frame, [70, 90], [1250, 1560], clamp);
+  const cy = interpolate(frame, [70, 90], [820, 592], clamp);
   const press = frame >= clickAt && frame < clickAt + 6 ? 0.94 : 1;
   return (
     <UI>
-      <AbsoluteFill style={{ padding: "150px 200px", fontFamily: sans, color: c.ink }}>
+      <AbsoluteFill style={{ padding: "130px 160px", fontFamily: sans, color: c.ink }}>
         <div style={{ opacity: card, transform: `translateY(${(1 - card) * 40}px)` }}>
-          <Label>AI visibility tracker · AEO &amp; GEO</Label>
-          <div style={{ fontSize: 120, fontWeight: 700, letterSpacing: "-0.045em", lineHeight: 1, marginTop: 24 }}>
-            Get on AI&apos;s <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: c.accent }}>shortlist.</span>
+          <Label size={36} color={c.accent}>AI visibility tracker · AEO &amp; GEO</Label>
+          <div style={{ fontSize: 130, fontWeight: 700, letterSpacing: "-0.045em", lineHeight: 1, marginTop: 24 }}>
+            Free <Em color={c.accent}>AI visibility</Em> check.
           </div>
-          <div style={{ marginTop: 28, fontSize: 30, color: c.accent, fontWeight: 600 }}>Free check · ~30 seconds</div>
-          <div style={{ width: 1100, marginTop: 18, background: c.card, border: `2px solid ${c.line}`, borderRadius: 28, overflow: "hidden", boxShadow: "0 30px 80px -40px rgba(60,30,10,0.4)" }}>
-            <div style={{ padding: "26px 30px", fontSize: 34, borderBottom: `2px solid ${c.line}` }}>
+          <div style={{ width: 1600, marginTop: 56, background: c.card, border: `3px solid ${c.line}`, borderRadius: 32, overflow: "hidden", boxShadow: "0 30px 80px -40px rgba(60,30,10,0.4)" }}>
+            <div style={{ padding: "28px 36px", fontSize: 50, borderBottom: `3px solid ${c.line}` }}>
               <Typed text="Acme CRM" start={14} speed={2.2} />
             </div>
-            <div style={{ display: "flex", alignItems: "center", padding: 14 }}>
-              <div style={{ flex: 1, padding: "12px 16px", fontSize: 34 }}>
-                {frame >= 36 ? <Typed text="best CRM for freelancers" start={36} speed={1.3} /> : <span style={{ color: "#aaa197" }}>e.g. best CRM for freelancers</span>}
+            <div style={{ display: "flex", alignItems: "center", padding: 16 }}>
+              <div style={{ flex: 1, padding: "14px 20px", fontSize: 50 }}>
+                {frame >= 36 ? <Typed text="best CRM for freelancers" start={36} speed={1.3} /> : <span style={{ color: "#aaa197" }}>a question customers ask</span>}
               </div>
               <div
                 style={{
                   background: c.accent,
                   color: "white",
-                  borderRadius: 18,
-                  padding: "20px 30px",
-                  fontSize: 30,
+                  borderRadius: 22,
+                  padding: "24px 38px",
+                  fontSize: 44,
                   fontWeight: 600,
                   transform: `scale(${press})`,
                   opacity: asking ? 0.75 + 0.25 * Math.sin(frame / 3) : 1,
@@ -327,7 +383,7 @@ const Check: React.FC = () => {
         </div>
       </AbsoluteFill>
       {/* cursor */}
-      <svg width="44" height="44" viewBox="0 0 24 24" style={{ position: "absolute", left: cx, top: cy, opacity: ramp(frame, 66, 4) }}>
+      <svg width="60" height="60" viewBox="0 0 24 24" style={{ position: "absolute", left: cx, top: cy, opacity: ramp(frame, 66, 4) }}>
         <path d="M3 2l7 19 2.5-7.5L20 11z" fill={c.ink} stroke="white" strokeWidth="1.2" />
       </svg>
     </UI>
@@ -344,11 +400,11 @@ const Result: React.FC = () => {
       <Center>
         <div
           style={{
-            width: 1180,
+            width: 1440,
             background: c.card,
-            border: `2px solid ${c.line}`,
-            borderRadius: 36,
-            padding: "48px 56px",
+            border: `3px solid ${c.line}`,
+            borderRadius: 40,
+            padding: "46px 60px",
             boxShadow: "0 50px 120px -50px rgba(60,30,10,0.5)",
             transform: `scale(${interpolate(card, [0, 1], [0.92, 1])})`,
             opacity: card,
@@ -356,13 +412,8 @@ const Result: React.FC = () => {
             color: c.ink,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <Label>{"// free check"}</Label>
-            <Label>Rankly</Label>
-          </div>
-          <div style={{ fontFamily: mono, fontSize: 22, color: c.muted, marginTop: 18 }}>Q: “best CRM for freelancers”</div>
-          <div style={{ fontSize: 66, fontWeight: 700, letterSpacing: "-0.035em", marginTop: 10 }}>
-            AI recommends your <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: c.accent, fontSize: 78 }}>competitor.</span>
+          <div style={{ fontSize: 76, fontWeight: 700, letterSpacing: "-0.035em", lineHeight: 1.05 }}>
+            AI recommends your <Em color={c.accent}>competitor.</Em>
           </div>
           {[...RANKED.slice(0, 2), "You (Acme CRM)"].map((n, i) => {
             const you = i === 2;
@@ -373,43 +424,35 @@ const Result: React.FC = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginTop: 16,
-                  padding: "18px 26px",
-                  borderRadius: 18,
+                  marginTop: 18,
+                  padding: "18px 30px",
+                  borderRadius: 20,
                   background: c.cream,
-                  border: you ? `2px solid ${c.accent}` : `2px solid transparent`,
-                  fontSize: 32,
+                  border: you ? `3px solid ${c.accent}` : `3px solid transparent`,
+                  fontSize: 46,
                   fontWeight: you ? 600 : 400,
                   opacity: ramp(frame, 16 + i * 14, 7),
                 }}
               >
                 <span>
-                  <span style={{ fontFamily: mono, fontSize: 22, color: c.muted, marginRight: 20 }}>{you ? "—" : `#${i + 1}`}</span>
+                  <span style={{ fontFamily: mono, fontSize: 34, color: c.muted, marginRight: 22 }}>{you ? "—" : `#${i + 1}`}</span>
                   {n}
                 </span>
-                <span
-                  style={{
-                    fontSize: 22,
-                    borderRadius: 20,
-                    padding: "6px 16px",
-                    background: you ? c.accentSoft : c.greenSoft,
-                    color: you ? c.accent : c.green,
-                  }}
-                >
+                <span style={{ fontSize: 32, borderRadius: 30, padding: "6px 20px", background: you ? c.accentSoft : c.greenSoft, color: you ? c.accent : c.green }}>
                   {you ? "not mentioned" : "recommended"}
                 </span>
               </div>
             );
           })}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 26, paddingTop: 22, borderTop: `2px solid ${c.line}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 28, paddingTop: 24, borderTop: `3px solid ${c.line}` }}>
             <div>
-              <Label>AI visibility score</Label>
-              <div style={{ fontSize: 80, fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, marginTop: 8 }}>
+              <div style={{ fontSize: 40, color: c.muted }}>AI visibility score</div>
+              <div style={{ fontSize: 110, fontWeight: 700, letterSpacing: "-0.05em", lineHeight: 1, marginTop: 6 }}>
                 {score ?? "?"}
-                <span style={{ fontSize: 40, color: c.muted }}>/5</span>
+                <span style={{ fontSize: 56, color: c.muted }}>/5</span>
               </div>
             </div>
-            <div style={{ fontSize: 28, color: c.accent, opacity: ramp(frame, 96, 8) }}>+ 3 fixes →</div>
+            <div style={{ fontSize: 56, fontWeight: 600, color: c.accent, opacity: ramp(frame, 96, 8) }}>+ 3 fixes →</div>
           </div>
         </div>
       </Center>
@@ -435,12 +478,8 @@ const Free: React.FC = () => (
   </AbsoluteFill>
 );
 
-// ---------- 10. Not a dashboard. A to-do list. ----------
-const STEPS = [
-  ["01", "Add 5 questions.", "Your brand + what customers ask. 2 minutes."],
-  ["02", "We ask AI every Monday.", "Like a brand-new customer would."],
-  ["03", "Report in your inbox.", "Score, rank, competitors, 3 fixes."],
-] as const;
+// ---------- 10. Weekly: 5 questions → AI every Monday → report ----------
+const STEPS = ["Add 5 questions.", "We ask AI every Monday.", "Score + 3 fixes by email."];
 const Todo: React.FC = () => {
   const frame = useCurrentFrame();
   const step = frame < 40 ? 0 : frame < 80 ? 1 : 2;
@@ -448,29 +487,25 @@ const Todo: React.FC = () => {
   return (
     <AbsoluteFill>
       <DotGrid />
-      <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", padding: "0 170px", gap: 110, fontFamily: sans, color: c.cream }}>
-        <div style={{ width: 720 }}>
-          <Label color={c.accentLight}>{"// how it works"}</Label>
-          <div style={{ fontSize: 86, fontWeight: 700, letterSpacing: "-0.04em", marginTop: 20, lineHeight: 1.02 }}>Not a dashboard.</div>
-          <div style={{ fontFamily: serif, fontStyle: "italic", fontSize: 96, color: c.accentLight, lineHeight: 1.02 }}>A to-do list.</div>
-          {STEPS.map(([n, t, s], i) => (
-            <div key={n} style={{ display: "flex", gap: 22, marginTop: 34, opacity: i > step ? 0.18 : i === step ? 1 : 0.45 }}>
-              <span style={{ fontFamily: serif, fontStyle: "italic", fontSize: 40, color: c.accentLight }}>{n}</span>
-              <div>
-                <div style={{ fontSize: 36, fontWeight: 600 }}>{t}</div>
-                <div style={{ fontSize: 24, color: "rgba(248,245,240,0.55)", marginTop: 4 }}>{s}</div>
-              </div>
+      <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", padding: "0 140px", gap: 90, fontFamily: sans, color: c.cream }}>
+        <div style={{ width: 820 }}>
+          <div style={{ fontSize: 96, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.02 }}>
+            Every <Em>Monday.</Em>
+          </div>
+          {STEPS.map((t, i) => (
+            <div key={t} style={{ display: "flex", alignItems: "baseline", gap: 24, marginTop: 40, opacity: i > step ? 0.2 : i === step ? 1 : 0.5 }}>
+              <span style={{ fontFamily: serif, fontStyle: "italic", fontSize: 64, color: c.accentLight, width: 50 }}>{i + 1}</span>
+              <span style={{ fontSize: 56, fontWeight: 600, letterSpacing: "-0.02em" }}>{t}</span>
             </div>
           ))}
         </div>
         <div style={{ flex: 1, display: "flex", justifyContent: "center", opacity: panel, transform: `translateY(${(1 - panel) * 40}px)` }}>
           {step === 0 && (
-            <div style={{ width: 560, background: c.card, color: c.ink, borderRadius: 28, padding: 36 }}>
-              <div style={{ fontSize: 22, color: c.muted }}>Brand</div>
-              <div style={{ fontSize: 36, fontWeight: 600 }}>Acme CRM</div>
-              {["best CRM for freelancers", "CRM for solo consultants", "cheap CRM with invoicing", "simple CRM for agencies", "best CRM for designers"].map((q, i) => (
-                <div key={q} style={{ fontSize: 24, padding: "12px 0", borderTop: `2px solid ${c.line}`, marginTop: i ? 0 : 16, opacity: ramp(frame, 6 + i * 5, 5) }}>
-                  <span style={{ fontFamily: mono, color: c.muted, marginRight: 14 }}>0{i + 1}</span>
+            <div style={{ width: 700, background: c.card, color: c.ink, borderRadius: 32, padding: 40 }}>
+              <div style={{ fontSize: 46, fontWeight: 700 }}>Acme CRM</div>
+              {["best CRM for freelancers", "CRM for consultants", "CRM with invoicing", "CRM for agencies", "CRM for designers"].map((q, i) => (
+                <div key={q} style={{ fontSize: 40, padding: "14px 0", borderTop: `3px solid ${c.line}`, marginTop: i ? 0 : 18, opacity: ramp(frame, 6 + i * 5, 5) }}>
+                  <span style={{ fontFamily: mono, fontSize: 32, color: c.accent, marginRight: 18 }}>{i + 1}</span>
                   {q}
                 </div>
               ))}
@@ -482,39 +517,33 @@ const Todo: React.FC = () => {
                 <div
                   key={d}
                   style={{
-                    width: 86,
-                    height: 150,
-                    borderRadius: 20,
+                    width: 92,
+                    height: 190,
+                    borderRadius: 24,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 14,
+                    gap: 16,
                     fontFamily: mono,
-                    fontSize: 20,
+                    fontSize: 30,
                     background: i === 0 ? c.accent : "rgba(248,245,240,0.06)",
                     color: i === 0 ? "white" : "rgba(248,245,240,0.4)",
                   }}
                 >
                   {d}
-                  {i === 0 && <span style={{ fontSize: 34 }}>✓</span>}
+                  {i === 0 && <span style={{ fontSize: 50 }}>✓</span>}
                 </div>
               ))}
             </div>
           )}
           {step === 2 && (
-            <div style={{ width: 600, background: c.card, color: c.ink, borderRadius: 28, padding: 34 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, color: c.muted }}>
-                <span>From Rankly · Monday</span>
-                <span>9:00</span>
-              </div>
-              <div style={{ fontSize: 34, fontWeight: 700, marginTop: 8 }}>AI visibility: 3/5 (↑1)</div>
-              <div style={{ fontSize: 24, background: c.cream, borderRadius: 14, padding: "12px 16px", marginTop: 14 }}>
-                <b>Beating you:</b> Northwind (9×), Ledgerly (6×)
-              </div>
-              {["Publish “Northwind vs Acme”", "Get listed in “Best CRMs for freelancers”", "Answer 2 Reddit threads"].map((f, i) => (
-                <div key={f} style={{ fontSize: 24, marginTop: 12, opacity: ramp(frame, 88 + i * 6, 5) }}>
-                  <span style={{ color: c.accent, marginRight: 12 }}>✓</span>
+            <div style={{ width: 720, background: c.card, color: c.ink, borderRadius: 32, padding: 40 }}>
+              <div style={{ fontSize: 34, color: c.muted }}>From Rankly · Monday</div>
+              <div style={{ fontSize: 58, fontWeight: 700, letterSpacing: "-0.03em", marginTop: 6 }}>AI visibility: 3/5 ↑</div>
+              {["Publish “Northwind vs Acme”", "Get on “best CRMs” lists", "Answer 2 Reddit threads"].map((f, i) => (
+                <div key={f} style={{ fontSize: 40, marginTop: 16, opacity: ramp(frame, 88 + i * 6, 5) }}>
+                  <span style={{ color: c.accent, marginRight: 14 }}>✓</span>
                   {f}
                 </div>
               ))}
@@ -526,7 +555,7 @@ const Todo: React.FC = () => {
   );
 };
 
-// ---------- 11. Price: $50+ → $9 ----------
+// ---------- 11. Price: other AI SEO tools $50–500 → Rankly $9 ----------
 const Price: React.FC = () => {
   const frame = useCurrentFrame();
   const v = Math.round(interpolate(frame, [12, 40], [50, 9], { ...clamp, easing: (t) => 1 - Math.pow(1 - t, 3) }));
@@ -535,19 +564,16 @@ const Price: React.FC = () => {
     <AbsoluteFill>
       <DotGrid />
       <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 120, fontFamily: sans, color: c.cream }}>
-        <div style={{ width: 520, background: c.ink2, border: "1px solid rgba(248,245,240,0.1)", borderRadius: 30, padding: 40, opacity: rankly ? 0.35 : 1 }}>
-          <Label color="rgba(248,245,240,0.5)">Other AI SEO tools</Label>
-          <div style={{ fontSize: 40, fontWeight: 600, marginTop: 14 }}>Built for big teams.</div>
-          {[80, 70, 88, 60].map((w, i) => (
-            <div key={i} style={{ height: 14, width: `${w}%`, borderRadius: 7, background: "rgba(248,245,240,0.12)", marginTop: 18 }} />
-          ))}
-          <div style={{ fontFamily: mono, fontSize: 22, marginTop: 30, color: "rgba(248,245,240,0.5)" }}>$50–500 / MONTH</div>
+        <div style={{ width: 720, background: c.ink2, border: "1px solid rgba(248,245,240,0.1)", borderRadius: 32, padding: 48, opacity: rankly ? 0.4 : 1 }}>
+          <div style={{ fontSize: 64, fontWeight: 700, letterSpacing: "-0.03em" }}>Other AI SEO tools</div>
+          <div style={{ fontSize: 46, color: "rgba(248,245,240,0.6)", marginTop: 10 }}>Built for big teams.</div>
+          <div style={{ fontSize: 72, fontWeight: 700, marginTop: 30, textDecoration: rankly ? "line-through" : "none", textDecorationColor: c.accentLight }}>$50–500/mo</div>
         </div>
         <div>
-          <Label color={rankly ? c.accentLight : "rgba(248,245,240,0.5)"}>{rankly ? "Rankly" : "Per month"}</Label>
-          <div style={{ fontSize: 260, fontWeight: 700, letterSpacing: "-0.06em", lineHeight: 1, color: rankly ? c.accentLight : c.cream }}>
+          <div style={{ fontSize: 64, fontWeight: 600, color: rankly ? c.accentLight : "rgba(248,245,240,0.5)" }}>{rankly ? "Rankly" : "Per month"}</div>
+          <div style={{ fontSize: 280, fontWeight: 700, letterSpacing: "-0.06em", lineHeight: 1, color: rankly ? c.accentLight : c.cream }}>
             ${v}
-            <span style={{ fontSize: 70, color: "rgba(248,245,240,0.5)" }}>/mo</span>
+            <span style={{ fontSize: 80, color: "rgba(248,245,240,0.5)" }}>/mo</span>
           </div>
         </div>
       </AbsoluteFill>
@@ -569,19 +595,19 @@ const Bars: React.FC = () => {
       <DotGrid />
       <Center>
         <div style={{ display: "flex", alignItems: "baseline", gap: 26 }}>
-          <Slam size={100}>Who AI recommends</Slam>
-          <Slam delay={6} size={124} italic color={c.accentLight}>
+          <Slam size={110}>See who AI picks</Slam>
+          <Slam delay={6} size={136} italic color={c.accentLight}>
             instead.
           </Slam>
         </div>
-        <div style={{ width: 1100, marginTop: 56, background: c.card, borderRadius: 30, padding: "36px 44px", fontFamily: sans }}>
+        <div style={{ width: 1300, marginTop: 56, background: c.card, borderRadius: 32, padding: "40px 50px", fontFamily: sans }}>
           {BARS.map(([n, v], i) => (
-            <div key={n} style={{ display: "flex", alignItems: "center", gap: 24, marginTop: i ? 18 : 0, fontSize: 30, color: n === "You" ? c.accent : c.ink }}>
-              <span style={{ width: 260 }}>{n}</span>
-              <div style={{ flex: 1, height: 26, borderRadius: 13, background: c.cream }}>
-                <div style={{ height: "100%", borderRadius: 13, background: c.ink, width: `${(v / 9) * 100 * ramp(frame, 6 + i * 3, 14)}%` }} />
+            <div key={n} style={{ display: "flex", alignItems: "center", gap: 28, marginTop: i ? 22 : 0, fontSize: 46, fontWeight: n === "You" ? 700 : 400, color: n === "You" ? c.accent : c.ink }}>
+              <span style={{ width: 360 }}>{n}</span>
+              <div style={{ flex: 1, height: 34, borderRadius: 17, background: c.cream }}>
+                <div style={{ height: "100%", borderRadius: 17, background: c.ink, width: `${(v / 9) * 100 * ramp(frame, 6 + i * 3, 14)}%` }} />
               </div>
-              <span style={{ fontFamily: mono, fontSize: 22, width: 50, color: c.muted }}>{v}×</span>
+              <span style={{ fontFamily: mono, fontSize: 40, width: 70, color: c.muted }}>{v}×</span>
             </div>
           ))}
         </div>
@@ -590,96 +616,34 @@ const Bars: React.FC = () => {
   );
 };
 
-// ---------- 13. Ask AI yourself? ----------
-const ChatShell: React.FC<{ header: string; children: React.ReactNode; headerColor?: string }> = ({ header, children, headerColor }) => (
-  <div style={{ width: 1100, minHeight: 380, background: c.ink2, border: "1px solid rgba(248,245,240,0.1)", borderRadius: 30, padding: "26px 36px", fontFamily: sans, color: c.cream }}>
-    <div style={{ fontFamily: mono, fontSize: 20, color: headerColor ?? "rgba(248,245,240,0.45)" }}>● {header}</div>
-    {children}
-  </div>
-);
-const UserBubble: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-    <div style={{ background: "rgba(248,245,240,0.12)", borderRadius: 18, padding: "14px 22px", fontSize: 30 }}>{children}</div>
-  </div>
-);
-const AiBubble: React.FC<{ children: React.ReactNode; opacity?: number }> = ({ children, opacity = 1 }) => (
-  <div style={{ marginTop: 22, maxWidth: 800, background: "rgba(248,245,240,0.06)", borderRadius: 18, padding: "18px 24px", fontSize: 28, lineHeight: 1.4, opacity }}>
-    {children}
-  </div>
-);
-
-const AskAI: React.FC = () => (
+// ---------- 13. The keywords, spelled out ----------
+const KEYWORDS = [
+  ["AEO", "Answer Engine Optimization"],
+  ["GEO", "Generative Engine Optimization"],
+  ["AI SEO", "Ranking in AI search"],
+] as const;
+const Keywords: React.FC = () => (
   <AbsoluteFill>
     <DotGrid />
     <Center>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 24, marginBottom: 50 }}>
-        <Slam size={110}>Ask AI</Slam>
-        <Slam delay={8} size={136} italic color={c.accentLight}>
-          yourself?
-        </Slam>
-      </div>
-      <ChatShell header="AI chat · signed in as you">
-        <UserBubble>
-          <Typed text="best CRM for freelancers" start={8} speed={1.1} />
-        </UserBubble>
-      </ChatShell>
+      <Slam size={84} color="rgba(248,245,240,0.75)" style={{ marginBottom: 40 }}>
+        One simple tracker for
+      </Slam>
+      {KEYWORDS.map(([k, meaning], i) => (
+        <div key={k} style={{ display: "flex", alignItems: "baseline", gap: 44, marginTop: 14 }}>
+          <Slam delay={12 + i * 22} size={150} italic color={c.accentLight} style={{ width: 460, textAlign: "right" }}>
+            {k}
+          </Slam>
+          <Slam delay={16 + i * 22} size={70} style={{ width: 1000 }}>
+            {meaning}
+          </Slam>
+        </div>
+      ))}
     </Center>
   </AbsoluteFill>
 );
 
-// ---------- 14. It remembers you → Rankly asks like a stranger ----------
-const Stranger: React.FC = () => {
-  const frame = useCurrentFrame();
-  const second = frame >= 30;
-  return (
-    <AbsoluteFill>
-      <DotGrid />
-      <Center>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 22, marginBottom: 50 }}>
-          {second ? (
-            <>
-              <Slam delay={30} size={104}>
-                Rankly asks like a
-              </Slam>
-              <Slam delay={36} size={130} italic color={c.accentLight}>
-                stranger.
-              </Slam>
-            </>
-          ) : (
-            <>
-              <Slam size={110}>It</Slam>
-              <Slam delay={4} size={136} italic color={c.accentLight}>
-                remembers
-              </Slam>
-              <Slam delay={8} size={110}>
-                you.
-              </Slam>
-            </>
-          )}
-        </div>
-        <ChatShell header={second ? "New session · asked like a new customer" : "AI chat · signed in as you"} headerColor={second ? c.accentLight : undefined}>
-          <UserBubble>best CRM for freelancers</UserBubble>
-          {second ? (
-            <>
-              <AiBubble opacity={ramp(frame, 32, 6)}>
-                Top picks for freelancers: <b>Northwind CRM</b>, <b>Ledgerly</b> and <b>Paperfin</b>.
-              </AiBubble>
-              <div style={{ display: "inline-block", marginTop: 18, background: c.accent, color: "white", borderRadius: 20, padding: "6px 16px", fontSize: 22, opacity: ramp(frame, 44, 5) }}>
-                You: not mentioned
-              </div>
-            </>
-          ) : (
-            <AiBubble opacity={ramp(frame, 6, 6)}>
-              Great question! Since you use <b>Acme CRM</b>, it&apos;s a great fit for you, and you&apos;re already set up 😊
-            </AiBubble>
-          )}
-        </ChatShell>
-      </Center>
-    </AbsoluteFill>
-  );
-};
-
-// ---------- 15. 0 minutes (on the silence) ----------
+// ---------- 14. 0 minutes (on the silence) ----------
 const Zero: React.FC = () => {
   const frame = useCurrentFrame();
   return (
@@ -689,7 +653,7 @@ const Zero: React.FC = () => {
         <div style={{ fontFamily: sans, fontWeight: 700, fontSize: 230, letterSpacing: "-0.055em", color: c.cream, opacity: ramp(frame, 0, 10), transform: `scale(${interpolate(frame, [0, 45], [1.04, 1], clamp)})` }}>
           0 minutes
         </div>
-        <div style={{ fontFamily: sans, fontSize: 48, color: "rgba(248,245,240,0.6)", marginTop: 10, opacity: ramp(frame, 12, 10) }}>
+        <div style={{ fontFamily: sans, fontSize: 64, color: "rgba(248,245,240,0.6)", marginTop: 10, opacity: ramp(frame, 12, 10) }}>
           checking AI by hand. <span style={{ color: c.cream, fontWeight: 600 }}>Ever.</span>
         </div>
       </Center>
@@ -697,14 +661,14 @@ const Zero: React.FC = () => {
   );
 };
 
-// ---------- 16. Beat montage ----------
+// ---------- 15. Beat montage ----------
 const WORDS: [React.ReactNode, number][] = [
   ["5 questions.", 0],
   ["Every Monday.", 15],
   ["3 fixes.", 30],
   [
     <>
-      <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: c.accentLight }}>$9</span>/month.
+      <Em>$9</Em>/month.
     </>,
     45,
   ],
@@ -728,37 +692,38 @@ const Montage: React.FC = () => {
   );
 };
 
-// ---------- 17. End card ----------
+// ---------- 16. End card ----------
 const End: React.FC = () => {
   const frame = useCurrentFrame();
   const dur = LAUNCH_FRAMES - b(79);
   const out = interpolate(frame, [dur - 24, dur], [1, 0], clamp);
+  const logo = useIn(0, 12);
   return (
     <AbsoluteFill>
       <DotGrid />
       <Center style={{ opacity: out }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 34, opacity: useIn(0, 12), transform: `scale(${interpolate(useIn(0, 12), [0, 1], [0.85, 1])})` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 34, opacity: logo, transform: `scale(${interpolate(logo, [0, 1], [0.85, 1])})` }}>
           <Robot size={150} />
           <span style={{ fontFamily: sans, fontWeight: 700, fontSize: 150, letterSpacing: "-0.045em", color: c.cream }}>Rankly</span>
         </div>
-        <div style={{ marginTop: 30, opacity: ramp(frame, 14, 10), fontFamily: sans, fontSize: 76, fontWeight: 700, letterSpacing: "-0.035em", color: c.cream }}>
-          Get on AI&apos;s <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: c.accentLight, fontSize: 88 }}>shortlist.</span>
+        <div style={{ marginTop: 24, opacity: ramp(frame, 12, 10), fontFamily: sans, fontSize: 84, fontWeight: 700, letterSpacing: "-0.035em", color: c.cream }}>
+          The <Em>AI visibility</Em> tracker.
         </div>
-        <div style={{ marginTop: 26, opacity: ramp(frame, 30, 10), fontFamily: sans, fontSize: 32, color: "rgba(248,245,240,0.65)" }}>
-          Free check · No signup · 7-day trial for $0
+        <div style={{ marginTop: 22, opacity: ramp(frame, 26, 10), fontFamily: sans, fontSize: 46, color: "rgba(248,245,240,0.7)" }}>
+          Free check · 7-day trial for $0
         </div>
         <div
           style={{
-            marginTop: 34,
-            opacity: ramp(frame, 44, 10),
-            transform: `translateY(${(1 - ramp(frame, 44, 10)) * 16}px)`,
+            marginTop: 36,
+            opacity: ramp(frame, 40, 10),
+            transform: `translateY(${(1 - ramp(frame, 40, 10)) * 16}px)`,
             background: c.cream,
             color: c.ink,
-            borderRadius: 60,
-            padding: "18px 40px",
+            borderRadius: 70,
+            padding: "20px 48px",
             fontFamily: sans,
-            fontSize: 36,
-            fontWeight: 600,
+            fontSize: 52,
+            fontWeight: 700,
           }}
         >
           rankly.world →
@@ -769,7 +734,7 @@ const End: React.FC = () => {
 };
 
 const COMPONENTS: Record<string, React.FC> = {
-  wall: Wall,
+  ask: Ask,
   competitor: Competitor,
   logo: Logo,
   shortlist: Shortlist,
@@ -781,18 +746,17 @@ const COMPONENTS: Record<string, React.FC> = {
   todo: Todo,
   price: Price,
   bars: Bars,
-  askai: AskAI,
-  stranger: Stranger,
+  keywords: Keywords,
   zero: Zero,
   montage: Montage,
   end: End,
 };
 
-// Persistent "Checked by hand: 0 min" chip, like the original.
+// Persistent brand chip, so every frame says what Rankly is.
 const Chip: React.FC = () => {
   const frame = useCurrentFrame();
   const light = SCENES.some(([k, s, e]) => (k === "check" || k === "result") && frame >= s && frame < e);
-  const o = interpolate(frame, [b(8), b(9), LAUNCH_FRAMES - 30, LAUNCH_FRAMES - 10], [0, 1, 1, 0], clamp);
+  const o = interpolate(frame, [b(17), b(18), b(79) - 10, b(79)], [0, 1, 1, 0], clamp);
   return (
     <div
       style={{
@@ -801,19 +765,20 @@ const Chip: React.FC = () => {
         bottom: 44,
         display: "flex",
         alignItems: "center",
-        gap: 12,
-        padding: "10px 20px",
-        borderRadius: 30,
-        fontFamily: mono,
-        fontSize: 20,
-        background: light ? c.ink : "rgba(248,245,240,0.08)",
-        color: light ? c.cream : "rgba(248,245,240,0.75)",
-        border: "1px solid rgba(248,245,240,0.12)",
+        gap: 14,
+        padding: "12px 24px",
+        borderRadius: 40,
+        fontFamily: sans,
+        fontWeight: 600,
+        fontSize: 30,
+        background: light ? c.ink : "rgba(248,245,240,0.1)",
+        color: c.cream,
+        border: "1px solid rgba(248,245,240,0.14)",
         opacity: o,
       }}
     >
-      <span style={{ width: 10, height: 10, borderRadius: 5, background: "#34d399", opacity: 0.6 + 0.4 * Math.sin(frame / 5) }} />
-      Checked by hand: <b>0 min</b>
+      <Robot size={34} blink={false} />
+      Rankly · AI visibility tracker
     </div>
   );
 };

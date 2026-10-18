@@ -112,8 +112,8 @@ export const Typed: React.FC<{ text: string; start: number; speed?: number; styl
   );
 };
 
-export const Label: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = c.muted }) => (
-  <div style={{ fontFamily: mono, fontSize: 22, letterSpacing: "0.2em", textTransform: "uppercase", color }}>{children}</div>
+export const Label: React.FC<{ children: React.ReactNode; color?: string; size?: number }> = ({ children, color = c.muted, size = 22 }) => (
+  <div style={{ fontFamily: mono, fontSize: size, letterSpacing: "0.2em", textTransform: "uppercase", color }}>{children}</div>
 );
 
 export const Center: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (

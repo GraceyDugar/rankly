@@ -5,7 +5,7 @@ export const metadata = { title: `Privacy Policy — ${site.name}` };
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy Policy" updated="October 13, 2026">
+    <LegalPage title="Privacy Policy" updated="October 18, 2026">
       <p>
         This policy explains what {site.name} collects, why, and who we share it with. We collect as little as we can and
         never sell your data.
@@ -39,6 +39,7 @@ export default function Privacy() {
       <h2>Cookies</h2>
       <p>
         We don&apos;t use advertising or tracking cookies. The only cookie we set is a login cookie for our own admin area.
+        To count visits we use Cloudflare Web Analytics, which is cookie-free and doesn&apos;t track you across sites.
       </p>
 
       <h2>How long we keep it</h2>

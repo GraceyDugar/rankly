@@ -230,12 +230,8 @@ export default function Home() {
             <a href="#value" className="hover:text-foreground">What you get</a>
             <a href="#pricing" className="hover:text-foreground">Pricing</a>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
-            <a
-              href="/llms.txt"
-              title="A summary of Rankly written for AI assistants"
-              className="flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 text-foreground hover:border-accent/60"
-            >
-              <span aria-hidden>🤖</span> llms.txt
+            <a href="/llms.txt" title="A summary of Rankly written for AI assistants" className="hover:text-foreground">
+              llms.txt
             </a>
           </div>
           <CtaButton className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:bg-foreground/85">

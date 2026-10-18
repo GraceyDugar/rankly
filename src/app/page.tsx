@@ -1,7 +1,7 @@
 import FreeScan from "@/components/FreeScan";
 import Mascot from "@/components/Mascot";
 import LiveActivity from "@/components/LiveActivity";
-import LiveMarquee from "@/components/LiveMarquee";
+import LiveRibbon from "@/components/LiveRibbon";
 import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
 import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
@@ -280,7 +280,7 @@ export default function Home() {
         </section>
 
 
-        <LiveMarquee />
+        <LiveRibbon />
 
         {/* How it works: the full flow */}
         <section id="how" className="scroll-mt-20 border-t border-line">

@@ -133,20 +133,32 @@ body {
   .live-fade { animation: none; }
 }
 
-/* Live ticker tape: scrolls left forever, pauses on hover. */
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+/* Live ribbon: the robot's waveform, blinking eyes and floating chips. */
+@keyframes ribbon-bar {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
 }
-.marquee-track {
-  animation: marquee 45s linear infinite;
+.ribbon-bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ribbon-bar 0.9s ease-in-out infinite;
 }
-.marquee-mask:hover .marquee-track {
-  animation-play-state: paused;
+@keyframes ribbon-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
 }
-.marquee-mask {
-  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+.ribbon-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ribbon-blink 4s infinite;
+}
+@keyframes ribbon-chip {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+.ribbon-chip {
+  animation: ribbon-chip 5s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track { animation: none; }
+  .ribbon-bar, .ribbon-eye, .ribbon-chip { animation: none; }
 }

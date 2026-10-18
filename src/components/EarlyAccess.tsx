@@ -94,7 +94,7 @@ export function EarlyAccessDialog() {
               disabled={loading}
               className="w-full rounded-xl bg-accent py-3.5 font-medium text-white hover:brightness-110 disabled:opacity-60"
             >
-              {loading ? (paymentsEnabled ? "Opening checkout…" : "Joining…") : paymentsEnabled ? "Start free trial →" : "Join early access"}
+              {loading ? (paymentsEnabled ? "Opening checkout…" : "Joining…") : paymentsEnabled ? "Start trial for $0 →" : "Join early access"}
             </button>
             {error && <p className="text-sm text-red-700">{error}</p>}
           </form>

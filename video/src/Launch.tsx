@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createContext, useContext } from "react";
 import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Center, DotGrid, Label, Robot, Slam, Typed, useIn } from "./components";
 import { c, mono, sans, serif } from "./theme";
@@ -11,6 +11,10 @@ import { c, mono, sans, serif } from "./theme";
  *
  * Legibility rule: people watch this on phones, where 1080p shrinks ~5×.
  * Anything meant to be read is 40px or bigger; headlines are 100px+.
+ *
+ * The same film renders landscape (Launch, 1920x1080) and as a 9:16 reel
+ * (LaunchReel, 1080x1920). In the reel, content stays inside Instagram's safe
+ * zone: clear of the top ~250px and bottom ~420px, where the app draws its UI.
  */
 export const LAUNCH_FRAMES = 1350;
 const b = (k: number) => Math.round(13.92 + 15 * k);
@@ -35,6 +39,9 @@ const SCENES: [string, number, number][] = [
   ["montage", b(74), b(79)],
   ["end", b(79), LAUNCH_FRAMES],
 ];
+
+const Vertical = createContext(false);
+const useV = () => useContext(Vertical);
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const ramp = (frame: number, start: number, len = 8) => interpolate(frame, [start, start + len], [0, 1], clamp);
@@ -104,6 +111,7 @@ const Wall: React.FC = () => {
 
 // ---------- 1. Customers ask AI. AI names 3. Not you. ----------
 const Ask: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const bar = useIn(8, 14);
   const stamp = useIn(88, 11);
@@ -115,10 +123,19 @@ const Ask: React.FC = () => {
       </AbsoluteFill>
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, rgba(22,19,15,0.82) 35%, rgba(22,19,15,0.97) 80%)" }} />
       <Center>
-        <Slam size={116}>
-          Customers now ask <Em>AI.</Em>
-        </Slam>
-        <div style={{ marginTop: 60, width: 1280, opacity: bar, transform: `translateY(${(1 - bar) * 30}px)`, fontFamily: sans }}>
+        {v ? (
+          <>
+            <Slam size={124}>Customers now</Slam>
+            <Slam delay={4} size={124} style={{ marginTop: 12 }}>
+              ask <Em>AI.</Em>
+            </Slam>
+          </>
+        ) : (
+          <Slam size={116}>
+            Customers now ask <Em>AI.</Em>
+          </Slam>
+        )}
+        <div style={{ marginTop: 60, width: v ? 920 : 1280, opacity: bar, transform: `translateY(${(1 - bar) * 30}px)`, fontFamily: sans }}>
           <div
             style={{
               display: "flex",
@@ -127,15 +144,15 @@ const Ask: React.FC = () => {
               background: c.card,
               color: c.ink,
               borderRadius: 80,
-              padding: "30px 46px",
-              fontSize: 56,
+              padding: v ? "28px 40px" : "30px 46px",
+              fontSize: v ? 48 : 56,
               boxShadow: "0 40px 90px -30px rgba(0,0,0,0.8)",
             }}
           >
             <span style={{ color: c.accent }}>✦</span>
             <Typed text="best CRM for freelancers?" start={16} speed={1.15} />
           </div>
-          <div style={{ display: "flex", gap: 22, marginTop: 30, justifyContent: "center" }}>
+          <div style={{ display: "flex", flexDirection: v ? "column" : "row", alignItems: "center", gap: v ? 16 : 22, marginTop: 30, justifyContent: "center" }}>
             {RANKED.map((n, i) => (
               <div
                 key={n}
@@ -181,14 +198,15 @@ const Ask: React.FC = () => {
 
 // ---------- 2. The hit ----------
 const Competitor: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const shake = frame < 10 ? Math.sin(frame * 3) * (10 - frame) : 0;
   return (
     <AbsoluteFill>
       <DotGrid />
       <Center style={{ transform: `translateX(${shake}px)` }}>
-        <Slam size={150}>AI picked your</Slam>
-        <Slam delay={8} size={230} italic color={c.accentLight} style={{ marginTop: 14 }}>
+        <Slam size={v ? 118 : 150}>AI picked your</Slam>
+        <Slam delay={8} size={v ? 196 : 230} italic color={c.accentLight} style={{ marginTop: 14 }}>
           competitor.
         </Slam>
       </Center>
@@ -198,10 +216,32 @@ const Competitor: React.FC = () => {
 
 // ---------- 3. Rankly, the AI visibility tracker ----------
 const Logo: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const pop = useIn(0, 9);
   const word = useIn(14, 13);
   const tag = ramp(frame, 26, 8);
+  const tagline = (
+    <div style={{ marginTop: 30, opacity: tag, transform: `translateY(${(1 - tag) * 24}px)`, fontFamily: serif, fontStyle: "italic", fontSize: v ? 86 : 104, color: c.accentLight }}>
+      the AI visibility tracker
+    </div>
+  );
+  if (v) {
+    return (
+      <AbsoluteFill>
+        <DotGrid />
+        <Center>
+          <div style={{ transform: `scale(${pop}) rotate(${interpolate(pop, [0, 1], [-25, 0])}deg)` }}>
+            <Robot size={240} />
+          </div>
+          <div style={{ marginTop: 30, fontFamily: sans, fontWeight: 700, fontSize: 180, letterSpacing: "-0.045em", lineHeight: 1, color: c.cream, opacity: word, transform: `translateY(${(1 - word) * 30}px)` }}>
+            Rankly
+          </div>
+          {tagline}
+        </Center>
+      </AbsoluteFill>
+    );
+  }
   return (
     <AbsoluteFill>
       <DotGrid />
@@ -216,46 +256,48 @@ const Logo: React.FC = () => {
             </span>
           </div>
         </div>
-        <div style={{ marginTop: 30, opacity: tag, transform: `translateY(${(1 - tag) * 24}px)`, fontFamily: serif, fontStyle: "italic", fontSize: 104, color: c.accentLight }}>
-          the AI visibility tracker
-        </div>
+        {tagline}
       </Center>
     </AbsoluteFill>
   );
 };
 
 // ---------- 4. Tagline ----------
-const Shortlist: React.FC = () => (
-  <AbsoluteFill>
-    <DotGrid />
-    <Center>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 34 }}>
-        <Slam size={170}>Get on AI&apos;s</Slam>
-        <Slam delay={15} size={220} italic color={c.accentLight}>
-          shortlist.
-        </Slam>
-      </div>
-    </Center>
-  </AbsoluteFill>
-);
+const Shortlist: React.FC = () => {
+  const v = useV();
+  return (
+    <AbsoluteFill>
+      <DotGrid />
+      <Center>
+        <div style={{ display: "flex", flexDirection: v ? "column" : "row", alignItems: v ? "center" : "baseline", gap: v ? 16 : 34 }}>
+          <Slam size={v ? 136 : 170}>Get on AI&apos;s</Slam>
+          <Slam delay={15} size={v ? 210 : 220} italic color={c.accentLight}>
+            shortlist.
+          </Slam>
+        </div>
+      </Center>
+    </AbsoluteFill>
+  );
+};
 
 // ---------- 5. Google shows 10 links, AI search names 3 ----------
 const Google: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const swap = frame >= 30;
   const n = swap ? 3 : 10;
   return (
     <AbsoluteFill>
       <DotGrid />
-      <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 140 }}>
-        <div style={{ fontFamily: sans, color: c.cream, width: 620 }}>
+      <AbsoluteFill style={{ display: "flex", flexDirection: v ? "column" : "row", alignItems: "center", justifyContent: "center", gap: v ? 70 : 140 }}>
+        <div style={{ fontFamily: sans, color: c.cream, width: v ? 860 : 620 }}>
           <div style={{ fontSize: 64, fontWeight: 600, color: swap ? c.accentLight : "rgba(248,245,240,0.7)" }}>{swap ? "AI search names" : "Google shows"}</div>
           <div key={n} style={{ fontSize: 300, fontWeight: 700, letterSpacing: "-0.06em", lineHeight: 1, marginTop: 10, opacity: ramp(frame, swap ? 30 : 0, 6) }}>
             {n}
           </div>
           <div style={{ fontSize: 64, color: "rgba(248,245,240,0.7)" }}>{swap ? "businesses." : "links."}</div>
         </div>
-        <div style={{ width: 620 }}>
+        <div style={{ width: v ? 860 : 620 }}>
           {Array.from({ length: 10 }).map((_, i) => {
             const keep = i < 3;
             const o = swap ? (keep ? 1 : interpolate(frame, [30, 40], [1, 0.08], clamp)) : ramp(frame, i * 2, 6);
@@ -263,7 +305,7 @@ const Google: React.FC = () => {
               <div
                 key={i}
                 style={{
-                  height: 34,
+                  height: v ? 30 : 34,
                   marginTop: 14,
                   borderRadius: 10,
                   background: swap && keep ? c.accent : "rgba(248,245,240,0.12)",
@@ -281,6 +323,7 @@ const Google: React.FC = () => {
 
 // ---------- 6. Not on the list? You're invisible. ----------
 const Invisible: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const second = frame >= 30;
   const youFade = interpolate(frame, [30, 48], [1, 0.05], clamp);
@@ -290,17 +333,17 @@ const Invisible: React.FC = () => {
       <Center>
         {second ? (
           <div style={{ display: "flex", alignItems: "baseline", gap: 28 }}>
-            <Slam delay={30} size={130}>
+            <Slam delay={30} size={v ? 96 : 130}>
               You&apos;re
             </Slam>
-            <Slam delay={36} size={160} italic color={c.accentLight}>
+            <Slam delay={36} size={v ? 124 : 160} italic color={c.accentLight}>
               invisible.
             </Slam>
           </div>
         ) : (
-          <Slam size={130}>Not on the list?</Slam>
+          <Slam size={v ? 100 : 130}>Not on the list?</Slam>
         )}
-        <div style={{ width: 980, marginTop: 56, fontFamily: sans }}>
+        <div style={{ width: v ? 920 : 980, marginTop: 56, fontFamily: sans }}>
           {[...RANKED, "You"].map((n, i) => (
             <div
               key={n}
@@ -313,7 +356,7 @@ const Invisible: React.FC = () => {
                 borderRadius: 18,
                 background: "rgba(248,245,240,0.06)",
                 border: "1px solid rgba(248,245,240,0.08)",
-                fontSize: 46,
+                fontSize: v ? 42 : 46,
                 color: c.cream,
                 opacity: i === 3 ? youFade * ramp(frame, 14, 6) : ramp(frame, i * 4, 6),
               }}
@@ -340,58 +383,62 @@ const UI: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const Check: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const card = useIn(0, 15);
   const clickAt = 92;
   const asking = frame >= clickAt;
-  // Cursor glides to the button, then clicks.
-  const cx = interpolate(frame, [70, 90], [1250, 1560], clamp);
-  const cy = interpolate(frame, [70, 90], [820, 592], clamp);
   const press = frame >= clickAt && frame < clickAt + 6 ? 0.94 : 1;
+  // Cursor glides in from below-left of the button, then clicks it.
+  const cx = interpolate(frame, [70, 90], [-45, 55], clamp);
+  const cy = interpolate(frame, [70, 90], [260, 45], clamp);
   return (
     <UI>
-      <AbsoluteFill style={{ padding: "130px 160px", fontFamily: sans, color: c.ink }}>
+      <AbsoluteFill style={{ padding: v ? "0 80px" : "130px 160px", justifyContent: v ? "center" : "flex-start", fontFamily: sans, color: c.ink }}>
         <div style={{ opacity: card, transform: `translateY(${(1 - card) * 40}px)` }}>
-          <Label size={36} color={c.accent}>AI visibility tracker · AEO &amp; GEO</Label>
-          <div style={{ fontSize: 130, fontWeight: 700, letterSpacing: "-0.045em", lineHeight: 1, marginTop: 24 }}>
+          <Label size={v ? 28 : 36} color={c.accent}>AI visibility tracker · AEO &amp; GEO</Label>
+          <div style={{ fontSize: v ? 116 : 130, fontWeight: 700, letterSpacing: "-0.045em", lineHeight: 1, marginTop: 24 }}>
             Free <Em color={c.accent}>AI visibility</Em> check.
           </div>
-          <div style={{ width: 1600, marginTop: 56, background: c.card, border: `3px solid ${c.line}`, borderRadius: 32, overflow: "hidden", boxShadow: "0 30px 80px -40px rgba(60,30,10,0.4)" }}>
-            <div style={{ padding: "28px 36px", fontSize: 50, borderBottom: `3px solid ${c.line}` }}>
+          <div style={{ width: v ? 920 : 1600, marginTop: 56, background: c.card, border: `3px solid ${c.line}`, borderRadius: 32, boxShadow: "0 30px 80px -40px rgba(60,30,10,0.4)" }}>
+            <div style={{ padding: "28px 36px", fontSize: v ? 46 : 50, borderBottom: `3px solid ${c.line}` }}>
               <Typed text="Acme CRM" start={14} speed={2.2} />
             </div>
-            <div style={{ display: "flex", alignItems: "center", padding: 16 }}>
-              <div style={{ flex: 1, padding: "14px 20px", fontSize: 50 }}>
+            <div style={{ display: "flex", flexDirection: v ? "column" : "row", alignItems: v ? "stretch" : "center", padding: 16 }}>
+              <div style={{ flex: 1, padding: "14px 20px", fontSize: v ? 46 : 50 }}>
                 {frame >= 36 ? <Typed text="best CRM for freelancers" start={36} speed={1.3} /> : <span style={{ color: "#aaa197" }}>a question customers ask</span>}
               </div>
-              <div
-                style={{
-                  background: c.accent,
-                  color: "white",
-                  borderRadius: 22,
-                  padding: "24px 38px",
-                  fontSize: 44,
-                  fontWeight: 600,
-                  transform: `scale(${press})`,
-                  opacity: asking ? 0.75 + 0.25 * Math.sin(frame / 3) : 1,
-                }}
-              >
-                {asking ? "Asking AI…" : "Run free check →"}
+              <div style={{ position: "relative", marginTop: v ? 12 : 0 }}>
+                <div
+                  style={{
+                    background: c.accent,
+                    color: "white",
+                    borderRadius: 22,
+                    padding: "24px 38px",
+                    fontSize: 44,
+                    fontWeight: 600,
+                    textAlign: "center",
+                    transform: `scale(${press})`,
+                    opacity: asking ? 0.75 + 0.25 * Math.sin(frame / 3) : 1,
+                  }}
+                >
+                  {asking ? "Asking AI…" : "Run free check →"}
+                </div>
+                <svg width="60" height="60" viewBox="0 0 24 24" style={{ position: "absolute", left: `${cx}%`, top: `${cy}%`, opacity: ramp(frame, 66, 4) }}>
+                  <path d="M3 2l7 19 2.5-7.5L20 11z" fill={c.ink} stroke="white" strokeWidth="1.2" />
+                </svg>
               </div>
             </div>
           </div>
         </div>
       </AbsoluteFill>
-      {/* cursor */}
-      <svg width="60" height="60" viewBox="0 0 24 24" style={{ position: "absolute", left: cx, top: cy, opacity: ramp(frame, 66, 4) }}>
-        <path d="M3 2l7 19 2.5-7.5L20 11z" fill={c.ink} stroke="white" strokeWidth="1.2" />
-      </svg>
     </UI>
   );
 };
 
 // ---------- 8. The result ----------
 const Result: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const card = useIn(0, 14);
   const score = frame >= 80 ? 2 : null;
@@ -400,11 +447,11 @@ const Result: React.FC = () => {
       <Center>
         <div
           style={{
-            width: 1440,
+            width: v ? 920 : 1440,
             background: c.card,
             border: `3px solid ${c.line}`,
             borderRadius: 40,
-            padding: "46px 60px",
+            padding: v ? "42px 44px" : "46px 60px",
             boxShadow: "0 50px 120px -50px rgba(60,30,10,0.5)",
             transform: `scale(${interpolate(card, [0, 1], [0.92, 1])})`,
             opacity: card,
@@ -412,7 +459,7 @@ const Result: React.FC = () => {
             color: c.ink,
           }}
         >
-          <div style={{ fontSize: 76, fontWeight: 700, letterSpacing: "-0.035em", lineHeight: 1.05 }}>
+          <div style={{ fontSize: v ? 72 : 76, fontWeight: 700, letterSpacing: "-0.035em", lineHeight: 1.05 }}>
             AI recommends your <Em color={c.accent}>competitor.</Em>
           </div>
           {[...RANKED.slice(0, 2), "You (Acme CRM)"].map((n, i) => {
@@ -425,20 +472,20 @@ const Result: React.FC = () => {
                   justifyContent: "space-between",
                   alignItems: "center",
                   marginTop: 18,
-                  padding: "18px 30px",
+                  padding: v ? "18px 24px" : "18px 30px",
                   borderRadius: 20,
                   background: c.cream,
                   border: you ? `3px solid ${c.accent}` : `3px solid transparent`,
-                  fontSize: 46,
+                  fontSize: v ? 40 : 46,
                   fontWeight: you ? 600 : 400,
                   opacity: ramp(frame, 16 + i * 14, 7),
                 }}
               >
                 <span>
-                  <span style={{ fontFamily: mono, fontSize: 34, color: c.muted, marginRight: 22 }}>{you ? "—" : `#${i + 1}`}</span>
+                  <span style={{ fontFamily: mono, fontSize: v ? 30 : 34, color: c.muted, marginRight: 22 }}>{you ? "—" : `#${i + 1}`}</span>
                   {n}
                 </span>
-                <span style={{ fontSize: 32, borderRadius: 30, padding: "6px 20px", background: you ? c.accentSoft : c.greenSoft, color: you ? c.accent : c.green }}>
+                <span style={{ fontSize: v ? 28 : 32, borderRadius: 30, padding: "6px 20px", background: you ? c.accentSoft : c.greenSoft, color: you ? c.accent : c.green }}>
                   {you ? "not mentioned" : "recommended"}
                 </span>
               </div>
@@ -452,7 +499,7 @@ const Result: React.FC = () => {
                 <span style={{ fontSize: 56, color: c.muted }}>/5</span>
               </div>
             </div>
-            <div style={{ fontSize: 56, fontWeight: 600, color: c.accent, opacity: ramp(frame, 96, 8) }}>+ 3 fixes →</div>
+            <div style={{ fontSize: v ? 50 : 56, fontWeight: 600, color: c.accent, opacity: ramp(frame, 96, 8) }}>+ 3 fixes →</div>
           </div>
         </div>
       </Center>
@@ -461,34 +508,49 @@ const Result: React.FC = () => {
 };
 
 // ---------- 9. Free check. No signup. No card. ----------
-const Free: React.FC = () => (
-  <AbsoluteFill>
-    <DotGrid />
-    <Center>
-      <div style={{ display: "flex", gap: 34, alignItems: "baseline" }}>
-        <Slam size={108}>Free check.</Slam>
-        <Slam delay={15} size={108}>
-          No signup.
-        </Slam>
-        <Slam delay={30} size={134} italic color={c.accentLight}>
-          No card.
-        </Slam>
-      </div>
-    </Center>
-  </AbsoluteFill>
-);
+const Free: React.FC = () => {
+  const v = useV();
+  return (
+    <AbsoluteFill>
+      <DotGrid />
+      <Center>
+        <div style={{ display: "flex", flexDirection: v ? "column" : "row", gap: v ? 24 : 34, alignItems: v ? "center" : "baseline" }}>
+          <Slam size={v ? 124 : 108}>Free check.</Slam>
+          <Slam delay={15} size={v ? 124 : 108}>
+            No signup.
+          </Slam>
+          <Slam delay={30} size={v ? 160 : 134} italic color={c.accentLight}>
+            No card.
+          </Slam>
+        </div>
+      </Center>
+    </AbsoluteFill>
+  );
+};
 
 // ---------- 10. Weekly: 5 questions → AI every Monday → report ----------
 const STEPS = ["Add 5 questions.", "We ask AI every Monday.", "Score + 3 fixes by email."];
 const Todo: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const step = frame < 40 ? 0 : frame < 80 ? 1 : 2;
   const panel = useIn(step === 0 ? 0 : step === 1 ? 40 : 80, 14);
   return (
     <AbsoluteFill>
       <DotGrid />
-      <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", padding: "0 140px", gap: 90, fontFamily: sans, color: c.cream }}>
-        <div style={{ width: 820 }}>
+      <AbsoluteFill
+        style={{
+          display: "flex",
+          flexDirection: v ? "column" : "row",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: v ? "0 80px" : "0 140px",
+          gap: v ? 56 : 90,
+          fontFamily: sans,
+          color: c.cream,
+        }}
+      >
+        <div style={{ width: v ? 920 : 820 }}>
           <div style={{ fontSize: 96, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.02 }}>
             Every <Em>Monday.</Em>
           </div>
@@ -499,7 +561,7 @@ const Todo: React.FC = () => {
             </div>
           ))}
         </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", opacity: panel, transform: `translateY(${(1 - panel) * 40}px)` }}>
+        <div style={{ flex: v ? "none" : 1, height: v ? 520 : undefined, display: "flex", alignItems: v ? "flex-start" : "center", justifyContent: "center", opacity: panel, transform: `translateY(${(1 - panel) * 40}px)` }}>
           {step === 0 && (
             <div style={{ width: 700, background: c.card, color: c.ink, borderRadius: 32, padding: 40 }}>
               <div style={{ fontSize: 46, fontWeight: 700 }}>Acme CRM</div>
@@ -517,7 +579,7 @@ const Todo: React.FC = () => {
                 <div
                   key={d}
                   style={{
-                    width: 92,
+                    width: v ? 108 : 92,
                     height: 190,
                     borderRadius: 24,
                     display: "flex",
@@ -557,22 +619,23 @@ const Todo: React.FC = () => {
 
 // ---------- 11. Price: other AI SEO tools $50–500 → Rankly $9 ----------
 const Price: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
-  const v = Math.round(interpolate(frame, [12, 40], [50, 9], { ...clamp, easing: (t) => 1 - Math.pow(1 - t, 3) }));
+  const val = Math.round(interpolate(frame, [12, 40], [50, 9], { ...clamp, easing: (t) => 1 - Math.pow(1 - t, 3) }));
   const rankly = frame >= 40;
   return (
     <AbsoluteFill>
       <DotGrid />
-      <AbsoluteFill style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 120, fontFamily: sans, color: c.cream }}>
-        <div style={{ width: 720, background: c.ink2, border: "1px solid rgba(248,245,240,0.1)", borderRadius: 32, padding: 48, opacity: rankly ? 0.4 : 1 }}>
+      <AbsoluteFill style={{ display: "flex", flexDirection: v ? "column" : "row", alignItems: "center", justifyContent: "center", gap: v ? 70 : 120, fontFamily: sans, color: c.cream }}>
+        <div style={{ width: v ? 860 : 720, background: c.ink2, border: "1px solid rgba(248,245,240,0.1)", borderRadius: 32, padding: 48, opacity: rankly ? 0.4 : 1 }}>
           <div style={{ fontSize: 64, fontWeight: 700, letterSpacing: "-0.03em" }}>Other AI SEO tools</div>
           <div style={{ fontSize: 46, color: "rgba(248,245,240,0.6)", marginTop: 10 }}>Built for big teams.</div>
           <div style={{ fontSize: 72, fontWeight: 700, marginTop: 30, textDecoration: rankly ? "line-through" : "none", textDecorationColor: c.accentLight }}>$50–500/mo</div>
         </div>
-        <div>
+        <div style={{ textAlign: v ? "center" : "left" }}>
           <div style={{ fontSize: 64, fontWeight: 600, color: rankly ? c.accentLight : "rgba(248,245,240,0.5)" }}>{rankly ? "Rankly" : "Per month"}</div>
           <div style={{ fontSize: 280, fontWeight: 700, letterSpacing: "-0.06em", lineHeight: 1, color: rankly ? c.accentLight : c.cream }}>
-            ${v}
+            ${val}
             <span style={{ fontSize: 80, color: "rgba(248,245,240,0.5)" }}>/mo</span>
           </div>
         </div>
@@ -589,25 +652,37 @@ const BARS: [string, number][] = [
   ["You", 0],
 ];
 const Bars: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill>
       <DotGrid />
       <Center>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 26 }}>
-          <Slam size={110}>See who AI picks</Slam>
-          <Slam delay={6} size={136} italic color={c.accentLight}>
+        <div style={{ display: "flex", flexDirection: v ? "column" : "row", alignItems: v ? "center" : "baseline", gap: v ? 8 : 26 }}>
+          <Slam size={v ? 100 : 110}>See who AI picks</Slam>
+          <Slam delay={6} size={v ? 130 : 136} italic color={c.accentLight}>
             instead.
           </Slam>
         </div>
-        <div style={{ width: 1300, marginTop: 56, background: c.card, borderRadius: 32, padding: "40px 50px", fontFamily: sans }}>
-          {BARS.map(([n, v], i) => (
-            <div key={n} style={{ display: "flex", alignItems: "center", gap: 28, marginTop: i ? 22 : 0, fontSize: 46, fontWeight: n === "You" ? 700 : 400, color: n === "You" ? c.accent : c.ink }}>
-              <span style={{ width: 360 }}>{n}</span>
+        <div style={{ width: v ? 920 : 1300, marginTop: 56, background: c.card, borderRadius: 32, padding: v ? "36px 38px" : "40px 50px", fontFamily: sans }}>
+          {BARS.map(([n, val], i) => (
+            <div
+              key={n}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: v ? 20 : 28,
+                marginTop: i ? 22 : 0,
+                fontSize: v ? 40 : 46,
+                fontWeight: n === "You" ? 700 : 400,
+                color: n === "You" ? c.accent : c.ink,
+              }}
+            >
+              <span style={{ width: v ? 300 : 360 }}>{n}</span>
               <div style={{ flex: 1, height: 34, borderRadius: 17, background: c.cream }}>
-                <div style={{ height: "100%", borderRadius: 17, background: c.ink, width: `${(v / 9) * 100 * ramp(frame, 6 + i * 3, 14)}%` }} />
+                <div style={{ height: "100%", borderRadius: 17, background: c.ink, width: `${(val / 9) * 100 * ramp(frame, 6 + i * 3, 14)}%` }} />
               </div>
-              <span style={{ fontFamily: mono, fontSize: 40, width: 70, color: c.muted }}>{v}×</span>
+              <span style={{ fontFamily: mono, fontSize: v ? 34 : 40, width: v ? 60 : 70, color: c.muted }}>{val}×</span>
             </div>
           ))}
         </div>
@@ -622,38 +697,53 @@ const KEYWORDS = [
   ["GEO", "Generative Engine Optimization"],
   ["AI SEO", "Ranking in AI search"],
 ] as const;
-const Keywords: React.FC = () => (
-  <AbsoluteFill>
-    <DotGrid />
-    <Center>
-      <Slam size={84} color="rgba(248,245,240,0.75)" style={{ marginBottom: 40 }}>
-        One simple tracker for
-      </Slam>
-      {KEYWORDS.map(([k, meaning], i) => (
-        <div key={k} style={{ display: "flex", alignItems: "baseline", gap: 44, marginTop: 14 }}>
-          <Slam delay={12 + i * 22} size={150} italic color={c.accentLight} style={{ width: 460, textAlign: "right" }}>
-            {k}
-          </Slam>
-          <Slam delay={16 + i * 22} size={70} style={{ width: 1000 }}>
-            {meaning}
-          </Slam>
-        </div>
-      ))}
-    </Center>
-  </AbsoluteFill>
-);
+const Keywords: React.FC = () => {
+  const v = useV();
+  return (
+    <AbsoluteFill>
+      <DotGrid />
+      <Center>
+        <Slam size={v ? 76 : 84} color="rgba(248,245,240,0.75)" style={{ marginBottom: v ? 20 : 40 }}>
+          One simple tracker for
+        </Slam>
+        {KEYWORDS.map(([k, meaning], i) =>
+          v ? (
+            <div key={k} style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 40 }}>
+              <Slam delay={12 + i * 22} size={140} italic color={c.accentLight}>
+                {k}
+              </Slam>
+              <Slam delay={16 + i * 22} size={56} style={{ marginTop: 4 }}>
+                {meaning}
+              </Slam>
+            </div>
+          ) : (
+            <div key={k} style={{ display: "flex", alignItems: "baseline", gap: 44, marginTop: 14 }}>
+              <Slam delay={12 + i * 22} size={150} italic color={c.accentLight} style={{ width: 460, textAlign: "right" }}>
+                {k}
+              </Slam>
+              <Slam delay={16 + i * 22} size={70} style={{ width: 1000 }}>
+                {meaning}
+              </Slam>
+            </div>
+          ),
+        )}
+      </Center>
+    </AbsoluteFill>
+  );
+};
 
 // ---------- 14. 0 minutes (on the silence) ----------
 const Zero: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill>
       <DotGrid opacity={0.6} />
       <Center>
-        <div style={{ fontFamily: sans, fontWeight: 700, fontSize: 230, letterSpacing: "-0.055em", color: c.cream, opacity: ramp(frame, 0, 10), transform: `scale(${interpolate(frame, [0, 45], [1.04, 1], clamp)})` }}>
+        <div style={{ fontFamily: sans, fontWeight: 700, fontSize: v ? 180 : 230, letterSpacing: "-0.055em", color: c.cream, opacity: ramp(frame, 0, 10), transform: `scale(${interpolate(frame, [0, 45], [1.04, 1], clamp)})` }}>
           0 minutes
         </div>
-        <div style={{ fontFamily: sans, fontSize: 64, color: "rgba(248,245,240,0.6)", marginTop: 10, opacity: ramp(frame, 12, 10) }}>
+        <div style={{ fontFamily: sans, fontSize: v ? 54 : 64, color: "rgba(248,245,240,0.6)", marginTop: 10, opacity: ramp(frame, 12, 10) }}>
           checking AI by hand. <span style={{ color: c.cream, fontWeight: 600 }}>Ever.</span>
         </div>
       </Center>
@@ -674,6 +764,7 @@ const WORDS: [React.ReactNode, number][] = [
   ],
 ];
 const Montage: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   let idx = 0;
   WORDS.forEach(([, at], i) => {
@@ -684,7 +775,7 @@ const Montage: React.FC = () => {
     <AbsoluteFill>
       <DotGrid />
       <Center>
-        <Slam key={at} delay={at} size={200}>
+        <Slam key={at} delay={at} size={v ? 136 : 200}>
           {word}
         </Slam>
       </Center>
@@ -694,6 +785,7 @@ const Montage: React.FC = () => {
 
 // ---------- 16. End card ----------
 const End: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const dur = LAUNCH_FRAMES - b(79);
   const out = interpolate(frame, [dur - 24, dur], [1, 0], clamp);
@@ -703,10 +795,23 @@ const End: React.FC = () => {
       <DotGrid />
       <Center style={{ opacity: out }}>
         <div style={{ display: "flex", alignItems: "center", gap: 34, opacity: logo, transform: `scale(${interpolate(logo, [0, 1], [0.85, 1])})` }}>
-          <Robot size={150} />
-          <span style={{ fontFamily: sans, fontWeight: 700, fontSize: 150, letterSpacing: "-0.045em", color: c.cream }}>Rankly</span>
+          <Robot size={v ? 130 : 150} />
+          <span style={{ fontFamily: sans, fontWeight: 700, fontSize: v ? 130 : 150, letterSpacing: "-0.045em", color: c.cream }}>Rankly</span>
         </div>
-        <div style={{ marginTop: 24, opacity: ramp(frame, 12, 10), fontFamily: sans, fontSize: 84, fontWeight: 700, letterSpacing: "-0.035em", color: c.cream }}>
+        <div
+          style={{
+            marginTop: 24,
+            maxWidth: v ? 900 : undefined,
+            textAlign: "center",
+            lineHeight: 1.05,
+            opacity: ramp(frame, 12, 10),
+            fontFamily: sans,
+            fontSize: v ? 92 : 84,
+            fontWeight: 700,
+            letterSpacing: "-0.035em",
+            color: c.cream,
+          }}
+        >
           The <Em>AI visibility</Em> tracker.
         </div>
         <div style={{ marginTop: 22, opacity: ramp(frame, 26, 10), fontFamily: sans, fontSize: 46, color: "rgba(248,245,240,0.7)" }}>
@@ -752,8 +857,10 @@ const COMPONENTS: Record<string, React.FC> = {
   end: End,
 };
 
-// Persistent brand chip, so every frame says what Rankly is.
+// Persistent brand chip, so every frame says what Rankly is. In the reel it
+// sits near the top, since Instagram covers the bottom with captions.
 const Chip: React.FC = () => {
+  const v = useV();
   const frame = useCurrentFrame();
   const light = SCENES.some(([k, s, e]) => (k === "check" || k === "result") && frame >= s && frame < e);
   const o = interpolate(frame, [b(17), b(18), b(79) - 10, b(79)], [0, 1, 1, 0], clamp);
@@ -761,8 +868,7 @@ const Chip: React.FC = () => {
     <div
       style={{
         position: "absolute",
-        left: 48,
-        bottom: 44,
+        ...(v ? { top: 260, left: "50%", transform: "translateX(-50%)" } : { left: 48, bottom: 44 }),
         display: "flex",
         alignItems: "center",
         gap: 14,
@@ -771,6 +877,7 @@ const Chip: React.FC = () => {
         fontFamily: sans,
         fontWeight: 600,
         fontSize: 30,
+        whiteSpace: "nowrap",
         background: light ? c.ink : "rgba(248,245,240,0.1)",
         color: c.cream,
         border: "1px solid rgba(248,245,240,0.14)",
@@ -790,33 +897,35 @@ const CutFlash: React.FC = () => {
   return <AbsoluteFill style={{ background: c.accent, opacity: interpolate(since, [0, 4], [0.35, 0], clamp), pointerEvents: "none" }} />;
 };
 
-export const Launch: React.FC<{ music?: string }> = ({ music = "music/launch-track.m4a" }) => (
-  <AbsoluteFill style={{ background: c.ink }}>
-    {SCENES.map(([key, from, to]) => {
-      const Scene = COMPONENTS[key];
-      return (
-        <Sequence key={key} from={from} durationInFrames={to - from}>
-          <Scene />
-        </Sequence>
-      );
-    })}
-    <Chip />
-    <CutFlash />
-    {music && (
-      <>
-        {/* Part A: the original 0–32.464s */}
-        <Sequence from={0} durationInFrames={SPLICE}>
-          <Audio src={staticFile(music)} trimAfter={SPLICE} />
-        </Sequence>
-        {/* Part B: the original 46.464–59s (quiet breath, last loud run, the silence, the ending) */}
-        <Sequence from={SPLICE} durationInFrames={LAUNCH_FRAMES - SPLICE}>
-          <Audio
-            src={staticFile(music)}
-            trimBefore={B_START}
-            volume={(f) => interpolate(f, [LAUNCH_FRAMES - SPLICE - 45, LAUNCH_FRAMES - SPLICE], [1, 0], clamp)}
-          />
-        </Sequence>
-      </>
-    )}
-  </AbsoluteFill>
+export const Launch: React.FC<{ music?: string; vertical?: boolean }> = ({ music = "music/launch-track.m4a", vertical = false }) => (
+  <Vertical.Provider value={vertical}>
+    <AbsoluteFill style={{ background: c.ink }}>
+      {SCENES.map(([key, from, to]) => {
+        const Scene = COMPONENTS[key];
+        return (
+          <Sequence key={key} from={from} durationInFrames={to - from}>
+            <Scene />
+          </Sequence>
+        );
+      })}
+      <Chip />
+      <CutFlash />
+      {music && (
+        <>
+          {/* Part A: the original 0–32.464s */}
+          <Sequence from={0} durationInFrames={SPLICE}>
+            <Audio src={staticFile(music)} trimAfter={SPLICE} />
+          </Sequence>
+          {/* Part B: the original 46.464–59s (quiet breath, last loud run, the silence, the ending) */}
+          <Sequence from={SPLICE} durationInFrames={LAUNCH_FRAMES - SPLICE}>
+            <Audio
+              src={staticFile(music)}
+              trimBefore={B_START}
+              volume={(f) => interpolate(f, [LAUNCH_FRAMES - SPLICE - 45, LAUNCH_FRAMES - SPLICE], [1, 0], clamp)}
+            />
+          </Sequence>
+        </>
+      )}
+    </AbsoluteFill>
+  </Vertical.Provider>
 );

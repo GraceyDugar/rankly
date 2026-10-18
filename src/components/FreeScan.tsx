@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { site } from "@/lib/site";
+import { usePaymentsEnabled } from "./PaymentsContext";
 import { CtaButton } from "./EarlyAccess";
 import FullReportForm from "./FullReportForm";
 
@@ -32,6 +33,7 @@ type Result = {
 };
 
 export default function FreeScan() {
+  const paymentsEnabled = usePaymentsEnabled();
   const [brand, setBrand] = useState("");
   const [keyword, setKeyword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -183,7 +185,7 @@ export default function FreeScan() {
           <FullReportForm brand={scannedBrand} firstQuestion={result.keyword} />
 
           <CtaButton className="mt-3 w-full text-center text-sm text-muted underline underline-offset-4 hover:text-foreground">
-            {site.paymentsEnabled
+            {paymentsEnabled
               ? `Or track it every Monday · $${site.price}/month →`
               : "Or join early access for weekly tracking →"}
           </CtaButton>

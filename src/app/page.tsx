@@ -4,6 +4,7 @@ import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
 import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
 import LogoMark from "@/components/LogoMark";
+import { PaymentsProvider } from "@/components/PaymentsContext";
 
 function Logo() {
   return (
@@ -200,6 +201,7 @@ export default function Home() {
   ];
 
   return (
+    <PaymentsProvider enabled={site.paymentsEnabled}>
     <div className="relative overflow-x-clip">
       <script
         type="application/ld+json"
@@ -502,5 +504,6 @@ export default function Home() {
 
       <LegalFooter />
     </div>
+    </PaymentsProvider>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { site } from "@/lib/site";
+import { usePaymentsEnabled } from "./PaymentsContext";
 
 const DIALOG_ID = "early-access";
 
@@ -20,6 +21,7 @@ export function CtaButton({ className, children }: { className: string; children
 }
 
 export function EarlyAccessDialog() {
+  const paymentsEnabled = usePaymentsEnabled();
   const [email, setEmail] = useState("");
   const [brand, setBrand] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,14 +33,14 @@ export function EarlyAccessDialog() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(site.paymentsEnabled ? "/api/checkout" : "/api/waitlist", {
+      const res = await fetch(paymentsEnabled ? "/api/checkout" : "/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, brand }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Something went wrong.");
-      if (site.paymentsEnabled && data.url) {
+      if (paymentsEnabled && data.url) {
         window.location.href = data.url; // Dodo's secure checkout
         return;
       }
@@ -77,22 +79,22 @@ export function EarlyAccessDialog() {
         ) : (
           <form onSubmit={onSubmit} className="mt-5 space-y-3">
             <h2 className="text-2xl font-semibold tracking-tight">
-              {site.paymentsEnabled ? `Start tracking — $${site.price}/month` : "Get early access"}
+              {paymentsEnabled ? `Start tracking — $${site.price}/month` : "Get early access"}
             </h2>
             <p className="text-muted">
-              {site.paymentsEnabled
+              {paymentsEnabled
                 ? "Enter your email to continue to secure checkout. Cancel anytime."
                 : `Join the list and lock in $${site.price}/month forever. No payment today.`}
             </p>
             <input className={input} type="email" required placeholder="Your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            {!site.paymentsEnabled && (
+            {!paymentsEnabled && (
               <input className={input} placeholder="Your brand (optional)" value={brand} onChange={(e) => setBrand(e.target.value)} />
             )}
             <button
               disabled={loading}
               className="w-full rounded-xl bg-accent py-3.5 font-medium text-white hover:brightness-110 disabled:opacity-60"
             >
-              {loading ? (site.paymentsEnabled ? "Opening checkout…" : "Joining…") : site.paymentsEnabled ? "Continue to checkout →" : "Join early access"}
+              {loading ? (paymentsEnabled ? "Opening checkout…" : "Joining…") : paymentsEnabled ? "Continue to checkout →" : "Join early access"}
             </button>
             {error && <p className="text-sm text-red-700">{error}</p>}
           </form>

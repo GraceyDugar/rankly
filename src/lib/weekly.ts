@@ -1,4 +1,4 @@
-import { sendReportEmail } from "./email";
+import { sendReportEmail, sendSetupEmail, setupUrl } from "./email";
 import { buildReport, currentWeekOf, runBrandReport, type Brand } from "./report";
 import { supabaseAdmin } from "./supabase";
 
@@ -84,7 +84,9 @@ export async function runNextFreeReport() {
   if (!claimed?.length) return null;
 
   try {
-    const report = await buildReport({ name: job.brand, website: job.website, questions: job.questions });
+    const report = await buildReport({ name: job.brand, website: job.website, questions: job.questions }, null, {
+      light: true,
+    });
     await sendReportEmail(job.email, report, { free: true });
     await db
       .from("free_reports")
@@ -99,8 +101,35 @@ export async function runNextFreeReport() {
   }
 }
 
+// Paid but never finished setup, ~24h after the welcome email: remind once.
+export async function sendNextSetupReminder() {
+  const db = supabaseAdmin();
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await db
+    .from("customers")
+    .select("id, email, dodo_subscription_id, brands(id)")
+    .eq("status", "active")
+    .is("setup_reminded_at", null)
+    .not("dodo_subscription_id", "is", null)
+    .lt("welcome_sent_at", dayAgo)
+    .limit(20);
+  const target = (data ?? []).find((c) => !(c.brands as unknown[] | undefined)?.length);
+  if (!target) return null;
+  // Mark first so a failure can't cause repeated emails.
+  await db.from("customers").update({ setup_reminded_at: new Date().toISOString() }).eq("id", target.id);
+  try {
+    await sendSetupEmail(target.email, setupUrl(target.dodo_subscription_id!), true);
+    return { email: target.email, ok: true };
+  } catch (err) {
+    console.error("Setup reminder failed:", err);
+    return { email: target.email, ok: false };
+  }
+}
+
 // One job per cron run keeps each run well inside Cloudflare's limits.
 export async function runNextJob() {
+  const reminder = await sendNextSetupReminder();
+  if (reminder) return { kind: "setup-reminder", ...reminder };
   const free = await runNextFreeReport();
   if (free) return { kind: "free", ...free };
   const [paid] = await runWeeklyBatch(1);

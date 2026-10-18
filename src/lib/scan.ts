@@ -63,7 +63,14 @@ function normalize(s: string) {
 
 // Step 1: ask the AI the question a real customer would ask.
 // Step 2: pull out which brands it recommended and where the user ranks.
-export async function runScan(brand: string, keyword: string, website?: string): Promise<ScanResult> {
+// `light`: start on the lighter models (free checks), saving the main
+// model's daily quota for paying customers' reports.
+export async function runScan(
+  brand: string,
+  keyword: string,
+  website?: string,
+  opts: { light?: boolean } = {},
+): Promise<ScanResult> {
   const question = `${keyword}\n\nGive specific recommendations (names of businesses, products or services) with a one-line reason for each.`;
 
   // Web search isn't included in every Gemini plan (e.g. the free tier),
@@ -71,11 +78,11 @@ export async function runScan(brand: string, keyword: string, website?: string):
   let answer: string;
   let searched = process.env.GEMINI_SEARCH !== "off";
   try {
-    answer = await askGemini(question, { search: searched });
+    answer = await askGemini(question, { search: searched, light: opts.light });
   } catch (err) {
     if (!searched || !(err instanceof GeminiError) || err.status !== 429) throw err;
     searched = false;
-    answer = await askGemini(question);
+    answer = await askGemini(question, { light: opts.light });
   }
 
   // Let the model judge whether a listed name is really the user's brand

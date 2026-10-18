@@ -70,12 +70,13 @@ Rules: each fix is one sentence, under 25 words, starts with a verb, names a spe
 export async function buildReport(
   brand: ReportTarget,
   previousScore: number | null = null,
+  opts: { light?: boolean } = {},
 ): Promise<Report & { answers: string[] }> {
   const results: Report["results"] = [];
   const answers: string[] = [];
   for (const q of brand.questions) {
     try {
-      const r = await runScan(brand.name, q, brand.website || undefined);
+      const r = await runScan(brand.name, q, brand.website || undefined, opts);
       results.push({ keyword: q, mentioned: r.mentioned, position: r.position, competitors: r.competitors });
       answers.push(r.answer);
     } catch (err) {

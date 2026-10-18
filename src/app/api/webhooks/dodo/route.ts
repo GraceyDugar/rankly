@@ -55,6 +55,25 @@ export async function POST(request: Request) {
     }
   }
 
+  // New subscriber with no brand yet: email their personal setup link once.
+  if (status === "active" && subscriptionId) {
+    const { data: customer } = await db
+      .from("customers")
+      .select("id, email, welcome_sent_at, brands(id)")
+      .eq("dodo_subscription_id", subscriptionId)
+      .maybeSingle();
+    const hasBrand = !!(customer?.brands as unknown[] | undefined)?.length;
+    if (customer && !customer.welcome_sent_at && !hasBrand) {
+      try {
+        const { sendSetupEmail, setupUrl } = await import("@/lib/email");
+        await sendSetupEmail(customer.email, setupUrl(subscriptionId));
+        await db.from("customers").update({ welcome_sent_at: new Date().toISOString() }).eq("id", customer.id);
+      } catch (err) {
+        console.error("Welcome email failed:", err); // the daily reminder is a safety net
+      }
+    }
+  }
+
   console.log(`Dodo ${type} → ${status} (${email || subscriptionId})`);
   return Response.json({ ok: true });
 }

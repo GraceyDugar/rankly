@@ -83,3 +83,41 @@ export async function sendReportEmail(to: string, r: Report, opts: { free?: bool
   });
   if (!res.ok) throw new Error(`Resend error ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
+
+// Sent right after payment (and once more a day later if they haven't
+// finished), so nobody pays and never gets a report.
+export async function sendSetupEmail(to: string, setupUrl: string, reminder = false) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY is not set");
+  const title = reminder ? "One step left to get your first AI visibility report" : `Welcome to ${site.name}! Finish setup (2 min)`;
+  const intro = reminder
+    ? "You're subscribed, but we don't know your brand yet, so we can't send your report."
+    : "Thanks for subscribing. Tell us your brand and the questions your customers ask AI, and your first report arrives within minutes.";
+  const html = `<!doctype html><html><body style="margin:0;background:#f8f5f0;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td align="center">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fffdf9;border:1px solid #e6dfd4;border-radius:16px;padding:28px">
+    <tr><td>
+      <p style="margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6b645b">${esc(site.name)}</p>
+      <h1 style="margin:12px 0 10px;font-size:22px;color:#16130f">${esc(title)}</h1>
+      <p style="margin:0 0 22px;font-size:15px;line-height:1.5;color:#6b645b">${esc(intro)}</p>
+      <a href="${setupUrl}" style="display:inline-block;background:#b9532c;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:12px 20px;border-radius:10px">Finish setup →</a>
+      <p style="margin:22px 0 0;font-size:12px;color:#6b645b">Takes 2 minutes. Questions? Just reply to this email.</p>
+    </td></tr>
+  </table></td></tr></table></body></html>`;
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || `${site.name} <onboarding@resend.dev>`,
+      to: [to],
+      reply_to: site.supportEmail,
+      subject: title,
+      html,
+    }),
+  });
+  if (!res.ok) throw new Error(`Resend error ${res.status}: ${(await res.text()).slice(0, 200)}`);
+}
+
+export function setupUrl(subscriptionId: string) {
+  return `${site.url}/welcome?subscription_id=${encodeURIComponent(subscriptionId)}&status=active`;
+}

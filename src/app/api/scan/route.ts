@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
   let result;
   try {
-    result = await runScan(brand, keyword, website || undefined);
+    result = await runScan(brand, keyword, website || undefined, { light: true });
   } catch (err) {
     console.error("Scan failed:", err);
     return Response.json({ error: "The scan failed. Please try again in a minute." }, { status: 502 });

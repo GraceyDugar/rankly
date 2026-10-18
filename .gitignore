@@ -49,3 +49,4 @@ next-env.d.ts
 # Remotion video project
 video/node_modules
 video/out
+video/public/music

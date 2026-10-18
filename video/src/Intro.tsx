@@ -435,6 +435,13 @@ export const Intro: React.FC<{ music?: string }> = ({ music }) => (
       );
     })}
     <CutFlash />
-    {music && <Audio src={staticFile(music)} volume={(f) => interpolate(f, [INTRO_FRAMES - 30, INTRO_FRAMES], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />}
+    {music && (
+      <Audio
+        src={staticFile(music)}
+        // Measured on the rendered file: a 1-frame trim puts the beats on the cuts.
+        trimBefore={1}
+        volume={(f) => interpolate(f, [INTRO_FRAMES - 45, INTRO_FRAMES], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+      />
+    )}
   </AbsoluteFill>
 );

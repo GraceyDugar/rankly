@@ -10,6 +10,10 @@ import RunReportButton from "./RunReportButton";
 
 export const metadata = { title: `Admin — ${site.name}`, robots: { index: false } };
 
+// Free checks before launch day were tests. The list below hides them unless
+// ?all=1 is set; the public site still shows and counts them.
+const LAUNCHED_AT = "2026-10-19T00:00:00+05:30";
+
 type FreeCheck = {
   id: string;
   brand: string;
@@ -48,7 +52,7 @@ async function countSince(table: string, sinceMs?: number) {
 }
 
 function when(iso: string) {
-  return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 }
 
 function Stat({ label, value }: { label: string; value: number | string }) {
@@ -60,24 +64,23 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   );
 }
 
-async function Dashboard() {
+async function Dashboard({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
   // Always render at request time: the stats depend on the current time.
   await connection();
   const email = await getAdminEmail();
   if (!email) redirect("/admin/login");
+  const showAll = (await searchParams).all === "1";
 
   const DAY = 24 * 60 * 60 * 1000;
   const db = supabaseAdmin();
+  let checksQuery = db.from("free_checks").select("id, brand, question, mentioned, position, competitors, created_at");
+  if (!showAll) checksQuery = checksQuery.gte("created_at", new Date(LAUNCHED_AT).toISOString());
   const [today, week, allTime, activeCustomers, checksRes, signupsRes, brandsRes, leadsRes] = await Promise.all([
     countSince("free_checks", DAY),
     countSince("free_checks", 7 * DAY),
     countSince("free_checks"),
     db.from("customers").select("id", { count: "exact", head: true }).eq("status", "active"),
-    db
-      .from("free_checks")
-      .select("id, brand, question, mentioned, position, competitors, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100),
+    checksQuery.order("created_at", { ascending: false }).limit(100),
     db.from("waitlist").select("id, email, brand, created_at", { count: "exact" }).order("created_at", { ascending: false }).limit(500),
     db
       .from("brands")
@@ -176,6 +179,19 @@ async function Dashboard() {
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold tracking-tight">Latest free checks</h2>
+        <p className="mt-1 text-sm text-muted">
+          {showAll ? (
+            <>
+              Showing every check, including tests from before launch.{" "}
+              <a href="/admin" className="underline hover:text-foreground">Since launch only</a>
+            </>
+          ) : (
+            <>
+              Since launch day. Older test checks are hidden here, but still show on the site.{" "}
+              <a href="/admin?all=1" className="underline hover:text-foreground">Show all</a>
+            </>
+          )}
+        </p>
         <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-muted">
@@ -190,7 +206,9 @@ async function Dashboard() {
             <tbody className="divide-y divide-line">
               {checks.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted">No free checks yet.</td>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                    {showAll ? "No free checks yet." : "No free checks since launch yet."}
+                  </td>
                 </tr>
               )}
               {checks.map((c) => (
@@ -271,11 +289,11 @@ async function Dashboard() {
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12">
       <Suspense fallback={<p className="text-muted">Loading dashboard…</p>}>
-        <Dashboard />
+        <Dashboard searchParams={searchParams as Promise<{ all?: string }>} />
       </Suspense>
     </main>
   );

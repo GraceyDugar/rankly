@@ -250,7 +250,7 @@ export default function Home() {
             <circle cx="1160" cy="300" r="3" fill="var(--accent)" />
           </svg>
 
-          <div className="relative mx-auto grid max-w-6xl gap-14 px-6 pb-24 pt-16 md:pt-24 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+          <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-14 px-6 pb-24 pt-16 md:pt-24 lg:grid-cols-[1.1fr_1fr] lg:items-center">
             <div>
               <Label>AI visibility tracker · AEO &amp; GEO</Label>
               <h1 className="relative mt-20 inline-block text-[48px] font-semibold leading-[1] tracking-[-0.04em] sm:mt-24 sm:text-6xl lg:text-[76px]">

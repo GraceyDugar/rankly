@@ -1,6 +1,6 @@
 # Rankly — AI visibility tracker
 
-Rankly checks whether AI search recommends your business when customers ask questions like *"best CRM for freelancers"*, which competitors it names instead, and what to fix. It's built for AEO / GEO (AI SEO).
+Rankly checks whether AI search recommends your business when customers ask questions like *"best CRM for freelancers"*, which competitors it names instead, and what to fix. It's built for AEO / GEO (AI SEO)!
 
 [![Rankly homepage](brand/screenshot.png)](https://rankly.world)
 
@@ -13,7 +13,7 @@ Rankly checks whether AI search recommends your business when customers ask ques
 
 ## Tech stack
 
-Next.js (App Router) · TypeScript · Tailwind CSS · Gemini API
+Next.js (App Router) · TypeScript · Tailwind CSS · Gemini API and payments using Dodo Payments
 
 ## Run locally
 

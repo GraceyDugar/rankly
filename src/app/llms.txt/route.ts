@@ -26,6 +26,9 @@ export function GET() {
 - [Pricing](${u}/#pricing): $${site.price}/month, ${site.trialDays}-day free trial
 - [FAQ](${u}/#faq): AEO vs GEO vs SEO, how to get recommended by AI, and more
 - [Terms](${u}/terms) · [Privacy](${u}/privacy) · [Refunds](${u}/refund)
+
+## Free tools
+- [AI crawler checker](${u}/ai-crawler-checker): checks whether a site's robots.txt lets ChatGPT, Claude, Perplexity, Gemini and other AI crawlers read it
 `;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

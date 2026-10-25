@@ -32,7 +32,8 @@ export function LegalFooter() {
     <footer className="border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted sm:flex-row">
         <p>© 2026 {site.name} · AI visibility tracker for AEO &amp; GEO</p>
-        <div className="flex gap-6">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <Link href="/ai-crawler-checker" className="hover:text-foreground">AI crawler checker</Link>
           <Link href="/terms" className="hover:text-foreground">Terms</Link>
           <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
           <Link href="/refund" className="hover:text-foreground">Refunds</Link>

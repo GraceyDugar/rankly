@@ -9,7 +9,7 @@ Two videos, built with code in the Rankly brand:
 cd video
 npm install
 npm run studio        # preview and tweak in the browser
-npm run render:how    # → ../public/videos/how-rankly-works.mp4
+npm run render:how    # → ../public/videos/how-rankly-works.mp4 (rendered, then compressed for the web)
 npx remotion render src/index.ts Intro out/rankly-intro.mp4 --props='{"music":"music/track.mp3"}'
 ```
 

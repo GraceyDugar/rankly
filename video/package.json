@@ -5,7 +5,8 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render:intro": "remotion render src/index.ts Intro ../public/videos/rankly-intro.mp4",
-    "render:how": "remotion render src/index.ts HowItWorks ../public/videos/how-rankly-works.mp4 --crf=28"
+    "render:how": "remotion render src/index.ts HowItWorks out/how-rankly-works.mp4 --crf=28 && npm run compress:how",
+    "compress:how": "remotion ffmpeg -y -i out/how-rankly-works.mp4 -c:v libx264 -preset slow -tune animation -crf 30 -pix_fmt yuv420p -movflags +faststart -an ../public/videos/how-rankly-works.mp4"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.536",

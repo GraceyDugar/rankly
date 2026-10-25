@@ -2,6 +2,7 @@ import FreeScan from "@/components/FreeScan";
 import Mascot from "@/components/Mascot";
 import LiveActivity from "@/components/LiveActivity";
 import LiveRibbon from "@/components/LiveRibbon";
+import LazyVideo from "@/components/LazyVideo";
 import { CtaButton, EarlyAccessDialog } from "@/components/EarlyAccess";
 import { LegalFooter } from "@/components/LegalPage";
 import { site } from "@/lib/site";
@@ -287,16 +288,11 @@ export default function Home() {
             </h2>
             {/* 25s product walkthrough, rendered from video/ with Remotion. */}
             <div className="mt-12 overflow-hidden rounded-3xl border border-line bg-card shadow-[0_40px_100px_-50px_rgba(60,30,10,0.45)]">
-              <video
+              <LazyVideo
                 className="block aspect-video w-full"
                 src="/videos/how-rankly-works.mp4"
                 poster="/videos/how-rankly-works.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-label="How Rankly works: add your brand, Rankly asks AI, see who gets named, your AI visibility score, and the Monday report"
+                label="How Rankly works: add your brand, Rankly asks AI, see who gets named, your AI visibility score, and the Monday report"
               />
             </div>
             <ol className="mt-6 grid gap-4 md:grid-cols-5">

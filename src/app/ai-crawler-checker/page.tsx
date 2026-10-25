@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 
 const title = "Free AI Crawler Checker: Is Your Site Blocking ChatGPT?";
 const description =
-  "Check if your robots.txt lets ChatGPT, Claude, Perplexity, Gemini and other AI crawlers read your website. Free, results in seconds, no signup.";
+  "Check if ChatGPT, Claude, Perplexity, Gemini and other AI crawlers can read your website: your robots.txt rules and what they see without JavaScript. Free, no signup.";
 
 export const metadata = {
   title: `${title} | ${site.name}`,
@@ -17,6 +17,10 @@ export const metadata = {
 };
 
 const faqs = [
+  {
+    q: "I never set up SEO. Why does it say every crawler is allowed?",
+    a: "Because robots.txt can only block. With no robots.txt, every crawler is allowed by default. Allowed isn't the same as readable, though: if your site needs JavaScript to show its content, most AI crawlers see an empty page. The checker tells you that too.",
+  },
   {
     q: "Does blocking GPTBot remove my site from ChatGPT?",
     a: "No. GPTBot collects data to train OpenAI's models. ChatGPT search uses OAI-SearchBot, and ChatGPT-User opens pages that people ask about. If those two are allowed, ChatGPT can still find and cite your site.",
@@ -80,7 +84,8 @@ export default function AiCrawlerCheckerPage() {
           AI crawler checker. <span className="font-serif font-normal italic text-accent">Can AI read your site?</span>
         </h1>
         <p className="mt-4 text-lg leading-snug text-muted">
-          See if your robots.txt lets ChatGPT, Claude, Perplexity, Gemini and other AI crawlers read your website.
+          See if ChatGPT, Claude, Perplexity, Gemini and other AI crawlers are allowed to read your website, and how much of it
+          they can actually see.
         </p>
         <div className="mt-8">
           <AiCrawlerChecker />
@@ -116,10 +121,18 @@ export default function AiCrawlerCheckerPage() {
           <p>To stay in AI search but opt out of training, block only the training crawlers:</p>
           <Code>{"User-agent: GPTBot\nUser-agent: ClaudeBot\nUser-agent: Google-Extended\nUser-agent: CCBot\nDisallow: /\n\nUser-agent: *\nAllow: /"}</Code>
 
+          <h2>Allowed isn&apos;t the same as readable</h2>
+          <p>
+            Many sites, including a lot of those made with AI website builders, send an almost empty page and fill it in with
+            JavaScript. Google runs JavaScript; most AI crawlers don&apos;t. So the checker also loads your homepage without
+            JavaScript and counts the words. If there are almost none, AI sees a blank page. Server-side rendering, or a static
+            version of your key pages, fixes it.
+          </p>
+
           <h2>What this checker can&apos;t see</h2>
           <p>
-            It reads your robots.txt, which is what well-behaved crawlers follow. A firewall or CDN bot setting can still turn
-            crawlers away without changing robots.txt, so if you use one, check its bot settings too.
+            A firewall or CDN bot setting can turn specific AI crawlers away without changing robots.txt. If you use one, check
+            its bot settings too.
           </p>
         </div>
 

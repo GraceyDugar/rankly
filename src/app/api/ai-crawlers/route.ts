@@ -1,14 +1,18 @@
+import { visibleWords } from "@/lib/page-text";
 import { AI_CRAWLERS, checkCrawler, parseRobots } from "@/lib/robots";
 import { site } from "@/lib/site";
 
-// Free AI crawler checker: reads a site's robots.txt (and looks for llms.txt)
-// and reports which AI crawlers may read its homepage.
+// Free AI crawler checker: reads a site's robots.txt, looks for llms.txt, and
+// checks how much of the homepage a crawler that doesn't run JavaScript can see.
 
 const USER_AGENT = `RanklyBot/1.0 (+${site.url}/ai-crawler-checker)`;
 const TIMEOUT_MS = 8000;
 // Crawlers must read at least 500 KiB of robots.txt (RFC 9309); anything past that is ignored.
 const MAX_ROBOTS_BYTES = 512 * 1024;
 const MAX_LLMS_BYTES = 16 * 1024;
+const MAX_HTML_BYTES = 1024 * 1024;
+
+const isHtml = (page: { type: string; text: string }) => /html/i.test(page.type) || page.text.trimStart().startsWith("<");
 
 // Public domain names only: no IP addresses, ports, or local/internal hosts.
 function isPublicHost(hostname: string) {
@@ -90,19 +94,31 @@ export async function POST(request: Request) {
   }
 
   const signal = AbortSignal.timeout(TIMEOUT_MS);
-  const [robots, llms] = await Promise.allSettled([
+  const [robots, llms, home] = await Promise.allSettled([
     fetchText(`https://${host}/robots.txt`, MAX_ROBOTS_BYTES, signal),
     fetchText(`https://${host}/llms.txt`, MAX_LLMS_BYTES, signal),
+    fetchText(`https://${host}/`, MAX_HTML_BYTES, signal),
   ]);
 
   if (robots.status === "rejected") {
     return Response.json({ error: `Couldn't reach ${host}. Check the address and try again.` }, { status: 502 });
   }
 
-  // Per RFC 9309: a missing robots.txt (4xx) allows everything; a server error (5xx)
-  // tells crawlers to stay away until it's fixed.
+  // Per RFC 9309, a robots.txt that isn't there (4xx) allows everything, and a server
+  // error (5xx) tells crawlers to stay away until it's fixed. "refused" (401/403/429)
+  // also allows everything by the rules, but often means a firewall is turning bots away.
+  // Many sites answer every path with their HTML homepage; that isn't a robots.txt.
   const { status } = robots.value;
-  const robotsState = status >= 500 ? "error" : status >= 400 ? "missing" : "found";
+  const robotsState =
+    status >= 500
+      ? "error"
+      : [401, 403, 429].includes(status)
+        ? "refused"
+        : status >= 400
+          ? "missing"
+          : isHtml(robots.value)
+            ? "page"
+            : "found";
   const groups = robotsState === "found" ? parseRobots(robots.value.text) : [];
 
   const crawlers = AI_CRAWLERS.map((c) => {
@@ -110,13 +126,14 @@ export async function POST(request: Request) {
     return { ...c, ...verdict };
   });
 
-  // Many sites answer every path with their HTML homepage, so only count real text files.
   const llmsTxt =
-    llms.status === "fulfilled" &&
-    llms.value.status === 200 &&
-    !/html/i.test(llms.value.type) &&
-    llms.value.text.trim().length > 0 &&
-    !llms.value.text.trimStart().startsWith("<");
+    llms.status === "fulfilled" && llms.value.status === 200 && llms.value.text.trim().length > 0 && !isHtml(llms.value);
 
-  return Response.json({ host, robots: { state: robotsState, status }, llmsTxt, crawlers });
+  // Most AI crawlers read the raw HTML without running JavaScript.
+  const homepage =
+    home.status === "fulfilled"
+      ? { status: home.value.status, words: home.value.status === 200 ? visibleWords(home.value.text) : null }
+      : null;
+
+  return Response.json({ host, robots: { state: robotsState, status }, llmsTxt, homepage, crawlers });
 }

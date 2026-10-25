@@ -5,7 +5,16 @@ import { useState } from "react";
 import type { CrawlerUse } from "@/lib/robots";
 
 type Crawler = { token: string; company: string; use: CrawlerUse; allowed: boolean; matchedAgent: string | null; rule: string | null };
-type Result = { host: string; robots: { state: "found" | "missing" | "error"; status: number }; llmsTxt: boolean; crawlers: Crawler[] };
+type Result = {
+  host: string;
+  robots: { state: "found" | "missing" | "page" | "refused" | "error"; status: number };
+  llmsTxt: boolean;
+  homepage: { status: number; words: number | null } | null;
+  crawlers: Crawler[];
+};
+
+// Below this, a homepage is effectively blank to crawlers that don't run JavaScript.
+const MIN_WORDS = 50;
 
 const USE_LABEL: Record<CrawlerUse, string> = {
   search: "Search & AI answers",
@@ -92,7 +101,7 @@ export default function AiCrawlerChecker() {
               <>Every AI crawler is turned away right now.</>
             ) : blocked.length === 0 ? (
               <>
-                All {result.crawlers.length} AI crawlers can <span className="font-serif text-3xl font-normal italic text-accent">read your site.</span>
+                All {result.crawlers.length} AI crawlers are <span className="font-serif text-3xl font-normal italic text-accent">allowed.</span>
               </>
             ) : (
               <>
@@ -104,13 +113,34 @@ export default function AiCrawlerChecker() {
             {result.robots.state === "error"
               ? `${result.host}/robots.txt returned a server error (${result.robots.status}). Crawlers treat that as "stay away" until it's fixed.`
               : result.robots.state === "missing"
-                ? "No robots.txt found, so every crawler is allowed by default."
-                : blockedAnswers.length
-                  ? "Blocked search and answer crawlers can't read your pages, so those AI tools can't quote or recommend you from them."
-                  : blocked.length
-                    ? "Search and answer crawlers can read your site. Only AI training crawlers are blocked."
-                    : "Nothing in your robots.txt stops AI from reading your homepage."}
+                ? "Your site has no robots.txt, so every crawler is allowed by default. That's normal: robots.txt only exists to block crawlers."
+                : result.robots.state === "page"
+                  ? "Your site has no robots.txt file (it shows a web page at /robots.txt instead), so every crawler is allowed by default."
+                  : result.robots.state === "refused"
+                    ? `Your site refused our request for robots.txt (${result.robots.status}), so no rules apply. But if a firewall is turning bots away, it may turn AI crawlers away too.`
+                    : blockedAnswers.length
+                      ? "Blocked search and answer crawlers can't read your pages, so those AI tools can't quote or recommend you from them."
+                      : blocked.length
+                        ? "Search and answer crawlers are allowed. Only AI training crawlers are blocked."
+                        : "Nothing in your robots.txt stops AI crawlers from reading your homepage."}
           </p>
+
+          {result.homepage && (
+            <div
+              className={`mt-4 rounded-xl px-4 py-3 text-sm ${
+                result.homepage.words !== null && result.homepage.words >= MIN_WORDS ? "bg-emerald-50 text-emerald-800" : "bg-accent-soft text-foreground"
+              }`}
+            >
+              <span className="font-medium">What AI actually sees: </span>
+              {result.homepage.words === null
+                ? [401, 403, 429].includes(result.homepage.status)
+                  ? `your homepage refused our request (${result.homepage.status}). If your firewall blocks unknown bots, it may block AI crawlers too.`
+                  : `we couldn't load your homepage (error ${result.homepage.status}), so AI crawlers probably can't either.`
+                : result.homepage.words >= MIN_WORDS
+                  ? `your homepage shows ${result.homepage.words.toLocaleString()} words without JavaScript, so AI crawlers can read it.`
+                  : `your homepage shows ${result.homepage.words === 0 ? "no text" : `only ${result.homepage.words} words`} without JavaScript. Most AI crawlers (GPTBot, ClaudeBot, PerplexityBot) don't run JavaScript, so they see an almost empty page even though they're allowed. Server-side rendering or a static version of your key pages fixes this.`}
+            </div>
+          )}
 
           <div className="mt-5 overflow-x-auto rounded-xl border border-line">
             <table className="w-full text-left text-sm">
@@ -154,7 +184,7 @@ export default function AiCrawlerChecker() {
             {result.llmsTxt ? "found ✓" : "not found. It's optional: a plain-text summary of your site for AI (see ours at rankly.world/llms.txt)."}
           </p>
           <p className="mt-2 text-xs text-muted/80">
-            This reads robots.txt only. A firewall, such as Cloudflare&apos;s AI bot settings, can still block crawlers without showing up here.
+            A firewall, such as Cloudflare&apos;s AI bot settings, can block specific AI crawlers without showing up in robots.txt or in this check.
           </p>
 
           <div className="mt-6 flex flex-col items-start gap-3 rounded-xl bg-background p-4 sm:flex-row sm:items-center sm:justify-between">

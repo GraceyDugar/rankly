@@ -28,7 +28,7 @@ export function GET() {
 - [Terms](${u}/terms) · [Privacy](${u}/privacy) · [Refunds](${u}/refund)
 
 ## Free tools
-- [AI crawler checker](${u}/ai-crawler-checker): checks whether a site's robots.txt lets ChatGPT, Claude, Perplexity, Gemini and other AI crawlers read it
+- [AI crawler checker](${u}/ai-crawler-checker): checks whether a site's robots.txt lets ChatGPT, Claude, Perplexity, Gemini and other AI crawlers read it, and how much of its homepage they see without JavaScript
 `;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

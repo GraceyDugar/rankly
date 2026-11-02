@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   try {
     result = await runScan(brand, keyword, website || undefined, { light: true });
   } catch (err) {
-    console.error("Scan failed:", err);
+    console.error("Scan failed:", err instanceof Error ? err.message : err);
     return Response.json({ error: "The scan failed. Please try again in a minute." }, { status: 502 });
   }
 

@@ -13,7 +13,7 @@ Rankly checks whether AI search recommends your business when customers ask ques
 
 ## Tech stack
 
-Next.js (App Router) · TypeScript · Tailwind CSS · Gemini API and payments using Dodo Payments
+Next.js (App Router) · TypeScript · Tailwind CSS · Gemini API and payments using Dodo Payments (MoR)
 
 ## Run locally
 

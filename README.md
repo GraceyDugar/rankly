@@ -1,4 +1,4 @@
-# Rankly — AI visibility tracker
+# Rankly: AI visibility tracker
 
 Rankly checks whether AI search recommends your business when customers ask questions like *"best CRM for freelancers"*, which competitors it names instead, and what to fix. It's built for AEO / GEO (AI SEO)!
 
